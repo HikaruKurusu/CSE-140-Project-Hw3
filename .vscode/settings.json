@@ -1,16 +1,17 @@
 {
-    "files.associations": {
-        "*.embeddedhtml": "html",
-        "__locale": "cpp",
-        "string": "cpp",
-        "string_view": "cpp",
-        "ios": "cpp",
-        "iostream": "cpp",
-        "ostream": "cpp",
-        "sstream": "cpp",
-        "__hash_table": "cpp",
-        "deque": "cpp",
-        "unordered_map": "cpp",
-        "vector": "cpp"
-    }
+  "files.associations": {
+    "*.embeddedhtml": "html",
+    "__locale": "cpp",
+    "string": "cpp",
+    "string_view": "cpp",
+    "ios": "cpp",
+    "iostream": "cpp",
+    "ostream": "cpp",
+    "sstream": "cpp",
+    "__hash_table": "cpp",
+    "deque": "cpp",
+    "unordered_map": "cpp",
+    "vector": "cpp"
+  },
+  "C_Cpp_Runner.msvcBatchPath": ""
 }
