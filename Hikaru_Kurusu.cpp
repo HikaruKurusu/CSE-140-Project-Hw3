@@ -339,16 +339,33 @@ void fetch_file(const std::string& filename) {
     file.close();
 }
 
+// void fetch() {
+//     int index = PC / 4;
+//     if (index < instructions.size()) {
+//         std::cout << "Fetched Instruction: " << instructions[index] << std::endl;
+//         PC += 4;
+//     } else {
+//         std::cout << "No more instructions to fetch. PC = " << PC << std::endl;
+//     }
+// }
 void fetch() {
-    int index = PC / 4;
-    if (index < instructions.size()) {
-        std::cout << "Fetched Instruction: " << instructions[index] << std::endl;
-        PC += 4;
+    int next_pc = PC + 4; // Next sequential instruction address
+
+    // Choose next PC: if branch taken, use branch_target, else use next_pc
+    if (is_branch_taken) {
+        cout << "Branch taken. Jumping to 0x" << intToHex(branch_target) << endl;
+        PC = branch_target;
     } else {
-        std::cout << "No more instructions to fetch. PC = " << PC << std::endl;
+        PC = next_pc;
+    }
+
+    // Simulate instruction fetch
+    if (PC / 4 < instructions.size()) {
+        cout << "Fetched instruction at PC = 0x" << intToHex(PC) << ": " << instructions[PC / 4] << endl;
+    } else {
+        cout << "PC out of range: 0x" << intToHex(PC) << ". No instruction to fetch." << endl;
     }
 }
-
 int main() {
     // string instruction;
     // cout << "Enter an instruction: ";
@@ -360,8 +377,8 @@ int main() {
 
     // decode(instruction);
     fetch_file("sample_part1.txt");
-    // branch_target = 0; // PC = 0
-    // is_branch_taken = false; // Set this to true to simulate a branch taken
+    branch_target = 0; // PC = 0
+    is_branch_taken = false; // Set this to true to simulate a branch taken
     for (int i = 0; i < 3; ++i) {
         fetch();
     }
