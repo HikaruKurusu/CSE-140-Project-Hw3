@@ -1,7 +1,12 @@
 #include <iostream>
 using namespace std;
 #include <sstream>
-
+#include <fstream>
+#include <string>
+int PC = 0;
+std::vector<std::string> instructions;
+int branch_target = 0;
+bool is_branch_taken = false;
 string intToHex(int num) {
     stringstream ss;
     ss << hex << num;
@@ -317,15 +322,48 @@ void decode(string instruction) {
     }
 }
 
-int main() {
-    string instruction;
-    cout << "Enter an instruction: ";
-    cin >> instruction;
-    if (instruction.length() != 32) {
-        cout << "Enter an instruction: " << endl;
-        return 1;
+// Load all instructions from the file (do this once)
+void fetch_file(const std::string& filename) {
+    std::ifstream file(filename);
+
+    if (!file) {
+        std::cerr << "Error: Could not open file '" << filename << "'." << std::endl;
+        return;
     }
 
-    decode(instruction);
+    std::string line;
+    while (std::getline(file, line)) {
+        instructions.push_back(line);
+    }
+
+    file.close();
+}
+
+void fetch() {
+    int index = PC / 4;
+    if (index < instructions.size()) {
+        std::cout << "Fetched Instruction: " << instructions[index] << std::endl;
+        PC += 4;
+    } else {
+        std::cout << "No more instructions to fetch. PC = " << PC << std::endl;
+    }
+}
+
+int main() {
+    // string instruction;
+    // cout << "Enter an instruction: ";
+    // cin >> instruction;
+    // if (instruction.length() != 32) {
+    //     cout << "Enter an instruction: " << endl;
+    //     return 1;
+    // }
+
+    // decode(instruction);
+    fetch_file("sample_part1.txt");
+    // branch_target = 0; // PC = 0
+    // is_branch_taken = false; // Set this to true to simulate a branch taken
+    for (int i = 0; i < 3; ++i) {
+        fetch();
+    }
     return 0;
 }
