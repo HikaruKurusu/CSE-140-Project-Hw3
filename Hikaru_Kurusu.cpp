@@ -13,6 +13,7 @@ int operandB = 5;
 int alu_result = 0;
 const int DMEM_SIZE = 32;
 int d_mem[DMEM_SIZE] = {0};
+int total_clock_cycles = 0;
 string intToHex(int num) {
     stringstream ss;
     ss << hex << num;
@@ -413,6 +414,13 @@ int Mem(string instructionType, int address, int valueToStore = 0) {
         cerr << "Unknown instruction type in Mem()\n";
         return -1;
     }
+}
+
+void Writeback(int value, int destReg) {
+    if (destReg != 0) {
+        rf[destReg] = value;
+    }
+    total_clock_cycles++;
 }
 
 int main() {
