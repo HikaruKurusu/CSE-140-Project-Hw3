@@ -11,6 +11,8 @@ bool is_branch_taken = false;
 int operandA = 10;
 int operandB = 5;
 int alu_result = 0;
+const int DMEM_SIZE = 32;
+int d_mem[DMEM_SIZE] = {0};
 string intToHex(int num) {
     stringstream ss;
     ss << hex << num;
@@ -386,6 +388,26 @@ void Execute(string alu_ctrl) {
         cout << "Invalid ALU control signal!" << endl;
     }
 }
+int Mem(string instructionType, int address, int valueToStore = 0) {
+    int index = address / 4;
+
+    if (index < 0 || index >= 32) {
+        cerr << "Memory access error: Address out of bounds\n";
+        return -1;
+    }
+    if (instructionType == "SW") {
+        d_mem[index] = valueToStore;
+        return 0;
+    }
+    else if (instructionType == "LW") {
+        return d_mem[index];
+    }
+    else {
+        cerr << "Unknown instruction type in Mem()\n";
+        return -1;
+    }
+}
+
 int main() {
     fetch_file("sample_part1.txt");
     branch_target = 0;
