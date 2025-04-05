@@ -8,6 +8,9 @@ std::vector<std::string> instructions;
 std::vector<int> rf(32,0);
 int branch_target = 0;
 bool is_branch_taken = false;
+int operandA = 10;
+int operandB = 5;
+int alu_result = 0;
 string intToHex(int num) {
     stringstream ss;
     ss << hex << num;
@@ -347,16 +350,6 @@ void fetch_file(const std::string& filename) {
 
     file.close();
 }
-
-// void fetch() {
-//     int index = PC / 4;
-//     if (index < instructions.size()) {
-//         std::cout << "Fetched Instruction: " << instructions[index] << std::endl;
-//         PC += 4;
-//     } else {
-//         std::cout << "No more instructions to fetch. PC = " << PC << std::endl;
-//     }
-// }
 void fetch() {
     int next_pc = PC + 4; // Next sequential instruction address
 
@@ -376,19 +369,27 @@ void fetch() {
         cout << "PC out of range: 0x" << intToHex(PC) << ". No instruction to fetch." << endl;
     }
 }
+void Execute(string alu_ctrl) {
+    if (alu_ctrl == "0000") {
+        alu_result = operandA & operandB;
+    } else if (alu_ctrl == "0001") {
+        alu_result = operandA | operandB;
+    } else if (alu_ctrl == "0010") {
+        alu_result = operandA + operandB;
+    } else if (alu_ctrl == "0110") {
+        alu_result = operandA - operandB;
+    } else if (alu_ctrl == "0111") {
+        alu_result = (operandA < operandB) ? 1 : 0;
+    } else if (alu_ctrl == "1100") {
+        alu_result = ~(operandA | operandB);
+    } else {
+        cout << "Invalid ALU control signal!" << endl;
+    }
+}
 int main() {
-    // string instruction;
-    // cout << "Enter an instruction: ";
-    // cin >> instruction;
-    // if (instruction.length() != 32) {
-    //     cout << "Enter an instruction: " << endl;
-    //     return 1;
-    // }
-
-    // decode(instruction);
     fetch_file("sample_part1.txt");
-    branch_target = 0; // PC = 0
-    is_branch_taken = false; // Set this to true to simulate a branch taken
+    branch_target = 0;
+    is_branch_taken = false;
     for (int i = 0; i < 1; ++i) {
         fetch();
     }
