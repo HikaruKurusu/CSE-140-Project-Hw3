@@ -5,6 +5,7 @@ using namespace std;
 #include <string>
 int PC = 0;
 std::vector<std::string> instructions;
+std::vector<int> rf(32,0);
 int branch_target = 0;
 bool is_branch_taken = false;
 string intToHex(int num) {
@@ -22,19 +23,27 @@ string getFunct7(string binary) {
     return binary.substr(0, 7);
 }
 string getRs1(string binary) {
-    int rs1 = stoi(binary.substr(12, 5), nullptr, 2);
+    int rs1_num = stoi(binary.substr(12, 5), nullptr, 2);
+    rf[rs1_num]= rs1_num;
+    int rs1 = rf[rs1_num];
     return "x" + to_string(rs1);
 }
 string getRs2(string binary) {
-    int rs2 = stoi(binary.substr(7, 5), nullptr, 2);
+    int rs2_num = stoi(binary.substr(7, 5), nullptr, 2);
+    rf[rs2_num]= rs2_num;
+    int rs2 =rf[rs2_num];
     return "x" + to_string(rs2);
 }
 int zerotofour(string binary) {
-    int rd = stoi(binary.substr(7, 5), nullptr, 2);
+    int rd_num = stoi(binary.substr(7, 5), nullptr, 2);
+    rf[rd_num]= rd_num;
+    int rd = rf[rd_num];
     return rd;
 }
 string getRd(string binary) {
-    int rd = stoi(binary.substr(20, 5), nullptr, 2);
+    int rd_num = stoi(binary.substr(20, 5), nullptr, 2);
+    rf[rd_num]= rd_num;
+    int rd = rf[rd_num];
     return "x" + to_string(rd);
 }
 int todecimal(string binary) {
@@ -362,6 +371,7 @@ void fetch() {
     // Simulate instruction fetch
     if (PC / 4 < instructions.size()) {
         cout << "Fetched instruction at PC = 0x" << intToHex(PC) << ": " << instructions[PC / 4] << endl;
+        decode(instructions[1]);
     } else {
         cout << "PC out of range: 0x" << intToHex(PC) << ". No instruction to fetch." << endl;
     }
@@ -379,7 +389,7 @@ int main() {
     fetch_file("sample_part1.txt");
     branch_target = 0; // PC = 0
     is_branch_taken = false; // Set this to true to simulate a branch taken
-    for (int i = 0; i < 3; ++i) {
+    for (int i = 0; i < 1; ++i) {
         fetch();
     }
     return 0;
