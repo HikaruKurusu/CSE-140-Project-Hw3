@@ -157,19 +157,23 @@ void decode(string instruction) {
         if (funct3 == "000") {
             if (funct7 == "0000000") {
                 cout << "Operation: add\n";
+                Execute("0010");
                 printR(instruction,funct3,funct7);
             } else if(funct7 == "0100000"){
                 cout << "Operation: sub\n";
+                Execute("0110");
                 printR(instruction,funct3,funct7);
             }
         } else if (funct3 == "111") {
             if(funct7 == "0000000") {
                 cout << "Operation: and\n";
+                Execute("0000");
                 printR(instruction,funct3,funct7);
             }
         } else if (funct3 == "110") {
             if(funct7 == "0000000") {
                 cout << "Operation: or\n";
+                Execute("0001");
                 printR(instruction,funct3,funct7);
             }
         } else if (funct3 == "001") {
@@ -213,6 +217,7 @@ void decode(string instruction) {
             cout << "Rs1: " << getRs1(instruction) << endl;
             cout << "Rd: " << getRd(instruction) << endl;
             cout << "Immediate: " << todecimalForI((instruction)) << " (or 0x" << intToHex(todecimalForI((instruction))) << ")" << endl;
+            Execute("0010");
         } else if (funct3 == "001") {
             cout << "Operation: lh\n";
             cout << "Rs1: " << getRs1(instruction) << endl;
@@ -298,6 +303,7 @@ void decode(string instruction) {
             cout << "Rs1: " << getRs1(instruction) << endl;
             cout << "Rs2: " << getRs2(instruction) << endl;
             cout << "Immediate: " << getSTypeImm(instruction) << " (or 0x" << intToHex(getSTypeImm(instruction)) << ")" << endl;
+            Execute("0010");
         }
     }
     else if (opcode == "1100011") {
@@ -307,6 +313,7 @@ void decode(string instruction) {
             cout << "Rs1: " << getRs1(instruction) << endl;
             cout << "Rs2: " << getRs2(instruction) << endl;
             cout << "Immediate: " << (getSBTypeImm(instruction)) << " (or 0x" << intToHex(getSBTypeImm(instruction)) << ")" << endl;
+            Execute("0110");
         } else if(funct3 == "001") {
             cout << "Operation: bne\n";
             cout << "Rs1: " << getRs1(instruction) << endl;
