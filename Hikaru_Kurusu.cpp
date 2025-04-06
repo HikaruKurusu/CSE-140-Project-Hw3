@@ -19,6 +19,8 @@ const int DMEM_SIZE = 32;
 int d_mem[DMEM_SIZE] = {0};
 int total_clock_cycles = 0;
 void Execute(string alu_ctrl, int PC, int offset); //calling function here so i dont have to move it 
+int Mem(string instructionType, int address, int valueToStore ); 
+void Writeback(int value, int destReg);
 string intToHex(int num) {
     stringstream ss;
     ss << hex << num;
