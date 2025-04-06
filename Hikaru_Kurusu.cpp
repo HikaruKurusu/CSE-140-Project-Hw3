@@ -11,8 +11,14 @@ bool is_branch_taken = false;
 int operandA = 10;
 int operandB = 5;
 int alu_result = 0;
+int alu_zero=0;
+int offset = 0;
+int destReg=0;
+string Type_Instruction;
 const int DMEM_SIZE = 32;
 int d_mem[DMEM_SIZE] = {0};
+int total_clock_cycles = 0;
+void Execute(string alu_ctrl, int PC, int offset); //calling function here so i dont have to move it 
 string intToHex(int num) {
     stringstream ss;
     ss << hex << num;
@@ -47,6 +53,7 @@ int zerotofour(string binary) {
 }
 string getRd(string binary) {
     int rd_num = stoi(binary.substr(20, 5), nullptr, 2);
+    destReg  = stoi(binary.substr(20, 5), nullptr, 2);
     rf[rd_num]= rd_num;
     int rd = rf[rd_num];
     return "x" + to_string(rd);
@@ -63,8 +70,10 @@ int todecimalForI(string binary) {
         }
         imm = inverted;
         int value = stoi(imm, nullptr, 2);
+        offset = stoi(imm, nullptr, 2); //added
         return (value + 1) * -1;
     }
+    offset = stoi(imm, nullptr, 2);//added
     return stoi(imm, nullptr, 2);
 }
 int getSTypeImm(string binary) {
@@ -159,23 +168,23 @@ void decode(string instruction) {
         if (funct3 == "000") {
             if (funct7 == "0000000") {
                 cout << "Operation: add\n";
-                Execute("0010");
+                Execute("0010",PC,offset);
                 printR(instruction,funct3,funct7);
             } else if(funct7 == "0100000"){
                 cout << "Operation: sub\n";
-                Execute("0110");
+                Execute("0110",PC,offset);
                 printR(instruction,funct3,funct7);
             }
         } else if (funct3 == "111") {
             if(funct7 == "0000000") {
                 cout << "Operation: and\n";
-                Execute("0000");
+                Execute("0000",PC,offset);
                 printR(instruction,funct3,funct7);
             }
         } else if (funct3 == "110") {
             if(funct7 == "0000000") {
                 cout << "Operation: or\n";
-                Execute("0001");
+                Execute("0001",PC,offset);
                 printR(instruction,funct3,funct7);
             }
         } else if (funct3 == "001") {
@@ -219,7 +228,8 @@ void decode(string instruction) {
             cout << "Rs1: " << getRs1(instruction) << endl;
             cout << "Rd: " << getRd(instruction) << endl;
             cout << "Immediate: " << todecimalForI((instruction)) << " (or 0x" << intToHex(todecimalForI((instruction))) << ")" << endl;
-            Execute("0010");
+            Type_Instruction = "I";
+            Execute("0010",PC,offset);
         } else if (funct3 == "001") {
             cout << "Operation: lh\n";
             cout << "Rs1: " << getRs1(instruction) << endl;
@@ -305,7 +315,8 @@ void decode(string instruction) {
             cout << "Rs1: " << getRs1(instruction) << endl;
             cout << "Rs2: " << getRs2(instruction) << endl;
             cout << "Immediate: " << getSTypeImm(instruction) << " (or 0x" << intToHex(getSTypeImm(instruction)) << ")" << endl;
-            Execute("0010");
+            Type_Instruction = "S";
+            Execute("0010",PC,offset);
         }
     }
     else if (opcode == "1100011") {
@@ -315,7 +326,7 @@ void decode(string instruction) {
             cout << "Rs1: " << getRs1(instruction) << endl;
             cout << "Rs2: " << getRs2(instruction) << endl;
             cout << "Immediate: " << (getSBTypeImm(instruction)) << " (or 0x" << intToHex(getSBTypeImm(instruction)) << ")" << endl;
-            Execute("0110");
+            Execute("0110",PC,offset);
         } else if(funct3 == "001") {
             cout << "Operation: bne\n";
             cout << "Rs1: " << getRs1(instruction) << endl;
@@ -378,7 +389,8 @@ void fetch() {
         cout << "PC out of range: 0x" << intToHex(PC) << ". No instruction to fetch." << endl;
     }
 }
-void Execute(string alu_ctrl) {
+void Execute(string alu_ctrl, int PC, int offset) {
+    int alu_result = 0;
     if (alu_ctrl == "0000") {
         alu_result = operandA & operandB;
     } else if (alu_ctrl == "0001") {
@@ -392,8 +404,26 @@ void Execute(string alu_ctrl) {
     } else if (alu_ctrl == "1100") {
         alu_result = ~(operandA | operandB);
     } else {
-        cout << "Invalid ALU control signal!" << endl;
+        cout << "Invalid ALU control signal!" << alu_ctrl<< endl;
     }
+    if(alu_result ==0){
+        alu_zero=1;
+    }else{
+        alu_zero=0;
+    }
+    int branch_offset = offset<<1;
+    branch_target = (PC+4)+branch_offset;
+    if(Type_Instruction == "I"){
+        int address =alu_result;
+        int loaded_data =Mem("LW",address,1);
+        Writeback(loaded_data,destReg);
+    }else if (Type_Instruction == "I"){
+        int address =alu_result;
+        Mem("SW",address,1);
+    }else{
+        Writeback(alu_result,destReg);
+    }
+    cout << "....." << alu_result<< endl;
 }
 int Mem(string instructionType, int address, int valueToStore = 0) {
     int index = address / 4;
@@ -413,6 +443,13 @@ int Mem(string instructionType, int address, int valueToStore = 0) {
         cerr << "Unknown instruction type in Mem()\n";
         return -1;
     }
+}
+
+void Writeback(int value, int destReg) {
+    if (destReg != 0) {
+        rf[destReg] = value;
+    }
+    total_clock_cycles++;
 }
 
 int main() {
