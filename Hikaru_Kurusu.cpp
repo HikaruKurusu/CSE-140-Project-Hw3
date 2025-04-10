@@ -11,21 +11,45 @@ bool is_branch_taken = false;
 int operandA = 10;
 int operandB = 5;
 int alu_result = 0;
+int alu_zero=0;
+int offset = 0;
+int destReg=0;
+int RegWrite =0;
+int Branch = 0;
+int MemRead =0;
+int MemtoReg =0;
+int MemWrite=0;
+int AluSrc =0;
+int AluOp =0;
+string alu_opcode;
+string alu_funct3;
+string alu_funct7;
+int alu_ctrl;
+string Type_Instruction;
 const int DMEM_SIZE = 32;
 int d_mem[DMEM_SIZE] = {0};
 int total_clock_cycles = 0;
+<<<<<<< HEAD
+=======
+void Execute( int PC, int offset); //calling function here so i dont have to move it 
+int Mem(string instructionType, int address, int valueToStore ); 
+void Writeback(int value, int destReg);
+>>>>>>> Chris
 string intToHex(int num) {
     stringstream ss;
     ss << hex << num;
     return ss.str();
 }
 string op(string binary) {
+    alu_opcode=binary.substr(25,7);
     return binary.substr(25,7);
 }
 string getFunct3(string binary) {
+    alu_funct3=binary.substr(17, 3);
     return binary.substr(17, 3);
 }
 string getFunct7(string binary) {
+    alu_funct7=binary.substr(0, 7);
     return binary.substr(0, 7);
 }
 string getRs1(string binary) {
@@ -48,6 +72,7 @@ int zerotofour(string binary) {
 }
 string getRd(string binary) {
     int rd_num = stoi(binary.substr(20, 5), nullptr, 2);
+    destReg  = stoi(binary.substr(20, 5), nullptr, 2);
     rf[rd_num]= rd_num;
     int rd = rf[rd_num];
     return "x" + to_string(rd);
@@ -64,8 +89,10 @@ int todecimalForI(string binary) {
         }
         imm = inverted;
         int value = stoi(imm, nullptr, 2);
+        offset = stoi(imm, nullptr, 2); //added
         return (value + 1) * -1;
     }
+    offset = stoi(imm, nullptr, 2);//added
     return stoi(imm, nullptr, 2);
 }
 int getSTypeImm(string binary) {
@@ -160,23 +187,27 @@ void decode(string instruction) {
         if (funct3 == "000") {
             if (funct7 == "0000000") {
                 cout << "Operation: add\n";
-                Execute("0010");
+                Execute(PC,offset);
+                alu_ctrl=2;
                 printR(instruction,funct3,funct7);
             } else if(funct7 == "0100000"){
                 cout << "Operation: sub\n";
-                Execute("0110");
+               
+                alu_ctrl=6;
                 printR(instruction,funct3,funct7);
             }
         } else if (funct3 == "111") {
             if(funct7 == "0000000") {
                 cout << "Operation: and\n";
-                Execute("0000");
+                Execute(PC,offset);
+                alu_ctrl=0;
                 printR(instruction,funct3,funct7);
             }
         } else if (funct3 == "110") {
             if(funct7 == "0000000") {
                 cout << "Operation: or\n";
-                Execute("0001");
+                alu_ctrl=1;
+                Execute(PC,offset);
                 printR(instruction,funct3,funct7);
             }
         } else if (funct3 == "001") {
@@ -220,7 +251,9 @@ void decode(string instruction) {
             cout << "Rs1: " << getRs1(instruction) << endl;
             cout << "Rd: " << getRd(instruction) << endl;
             cout << "Immediate: " << todecimalForI((instruction)) << " (or 0x" << intToHex(todecimalForI((instruction))) << ")" << endl;
-            Execute("0010");
+            Type_Instruction = "I";
+            alu_ctrl=2;
+            Execute(PC,offset);
         } else if (funct3 == "001") {
             cout << "Operation: lh\n";
             cout << "Rs1: " << getRs1(instruction) << endl;
@@ -306,7 +339,9 @@ void decode(string instruction) {
             cout << "Rs1: " << getRs1(instruction) << endl;
             cout << "Rs2: " << getRs2(instruction) << endl;
             cout << "Immediate: " << getSTypeImm(instruction) << " (or 0x" << intToHex(getSTypeImm(instruction)) << ")" << endl;
-            Execute("0010");
+            Type_Instruction = "S";
+            Execute(PC,offset);
+            alu_ctrl=2;
         }
     }
     else if (opcode == "1100011") {
@@ -316,7 +351,8 @@ void decode(string instruction) {
             cout << "Rs1: " << getRs1(instruction) << endl;
             cout << "Rs2: " << getRs2(instruction) << endl;
             cout << "Immediate: " << (getSBTypeImm(instruction)) << " (or 0x" << intToHex(getSBTypeImm(instruction)) << ")" << endl;
-            Execute("0110");
+            Execute(PC,offset);
+            alu_ctrl=6;
         } else if(funct3 == "001") {
             cout << "Operation: bne\n";
             cout << "Rs1: " << getRs1(instruction) << endl;
@@ -379,22 +415,41 @@ void fetch() {
         cout << "PC out of range: 0x" << intToHex(PC) << ". No instruction to fetch." << endl;
     }
 }
-void Execute(string alu_ctrl) {
-    if (alu_ctrl == "0000") {
+void Execute(int PC, int offset) {
+    int alu_result = 0;
+    if (alu_ctrl == 0) {
         alu_result = operandA & operandB;
-    } else if (alu_ctrl == "0001") {
+    } else if (alu_ctrl == 1) {
         alu_result = operandA | operandB;
-    } else if (alu_ctrl == "0010") {
+    } else if (alu_ctrl == 2) {
         alu_result = operandA + operandB;
-    } else if (alu_ctrl == "0110") {
+    } else if (alu_ctrl == 6) {
         alu_result = operandA - operandB;
-    } else if (alu_ctrl == "0111") {
+    } else if (alu_ctrl == 7) {
         alu_result = (operandA < operandB) ? 1 : 0;
-    } else if (alu_ctrl == "1100") {
+    } else if (alu_ctrl == 12) {
         alu_result = ~(operandA | operandB);
     } else {
-        cout << "Invalid ALU control signal!" << endl;
+        cout << "Invalid ALU control signal!" << alu_ctrl<< endl;
     }
+    if(alu_result ==0){
+        alu_zero=1;
+    }else{
+        alu_zero=0;
+    }
+    int branch_offset = offset<<1;
+    branch_target = (PC+4)+branch_offset;
+    if(Type_Instruction == "I"){
+        int address =alu_result;
+        int loaded_data =Mem("LW",address,1);
+        Writeback(loaded_data,destReg);
+    }else if (Type_Instruction == "I"){
+        int address =alu_result;
+        Mem("SW",address,1);
+    }else{
+        Writeback(alu_result,destReg);
+    }
+    cout << "....." << alu_result<< endl;
 }
 int Mem(string instructionType, int address, int valueToStore = 0) {
     int index = address / 4;
@@ -422,6 +477,70 @@ void Writeback(int value, int destReg) {
     }
     total_clock_cycles++;
 }
+<<<<<<< HEAD
+=======
+void ControlUnit(const std::string& opcode,const std::string& funct3, const std::string& funct7){
+    RegWrite =0;
+    Branch =0;
+    MemRead=0;
+    MemtoReg =0;
+    MemWrite =0;
+    AluSrc=0;
+    AluOp=0;
+    if(opcode == "0110011"){//Rtype
+        RegWrite = 1;
+        AluSrc = 0;
+        MemtoReg = 0;
+        MemRead = 0;
+        MemWrite = 0;
+        Branch = 0;
+        AluOp = 2; 
+        if (funct3 == "000" && funct7 == "0000000") alu_ctrl = 2; // ADD
+        else if (funct3 == "000" && funct7 == "0100000") alu_ctrl = 6; // SUB
+        else if (funct3 == "111") alu_ctrl = 0; // AND
+        else if (funct3 == "110") alu_ctrl = 1; // OR
+        else if (funct3 == "100") alu_ctrl = 3; // XOR
+    }else if (opcode == "0010011"){//Itype
+        RegWrite = 1;
+        AluSrc = 1;
+        MemtoReg = 0;
+        MemRead = 0;
+        MemWrite = 0;
+        Branch = 0;
+        AluOp = 0;
+        if (funct3 == "000") alu_ctrl = 2; // ADDI
+        else if (funct3 == "111") alu_ctrl = 0; // ANDI
+        else if (funct3 == "110") alu_ctrl = 1; // ORI
+    }else if (opcode == "0000011"){//lw
+        RegWrite = 1;
+        AluSrc = 1;
+        MemtoReg = 1;
+        MemRead = 1;
+        MemWrite = 0;
+        Branch = 0;
+        AluOp = 0; 
+        alu_ctrl = 2;
+    }else if (opcode == "0100011"){//Stype
+        RegWrite = 0;
+        AluSrc = 1;
+        MemtoReg = 0;
+        MemRead = 0;
+        MemWrite = 1;
+        Branch = 0;
+        AluOp = 0; 
+        alu_ctrl = 2;
+    }else if(opcode == "1100011"){//branch
+        RegWrite = 0;
+        AluSrc = 0;
+        MemtoReg = 0;
+        MemRead = 0;
+        MemWrite = 0;
+        Branch = 1;
+        AluOp = 1; 
+        alu_ctrl = 6; 
+    }
+}
+>>>>>>> Chris
 
 int main() {
     fetch_file("sample_part1.txt");
