@@ -24,6 +24,7 @@ int AluOp =0;
 int rs1_global;
 int rs2_global;
 int rd_global;
+int imm_value;
 int offset_global;
 string alu_opcode;
 string alu_funct3;
@@ -119,6 +120,7 @@ int getSTypeImm(string binary) {
         int value2 = stoi(imm, nullptr, 2);
         return (value2 + 1) * -1;
     }
+    imm_value = stoi(imm, nullptr, 2);
     int value2 = stoi(imm, nullptr, 2);
     return value2;
 }
@@ -500,21 +502,21 @@ void fetch( string instructions_taken) {
 
     // Choose next PC: if branch taken, use branch_target, else use next_pc
     if (is_branch_taken) {
-        cout << "Branch taken. Jumping to 0x" << intToHex(branch_target) << endl;
-        PC = branch_target;
+        //cout << "Branch taken. Jumping to 0x" << intToHex(branch_target) << endl;
+        //PC = branch_target;
     } else {
         PC = next_pc;
     }
 
     // Simulate instruction fetch
-    if (PC / 4 < instructions.size()) {
+    //if (PC / 4 < instructions.size()) {
         // cout << "Fetched instruction at PC = 0x" << intToHex(PC) << ": " << instructions[PC / 4] << endl;
-        decode(instructions_taken);
-        cout<< instructions_taken<<endl;
+    decode(instructions_taken);
+    
            
-    } else {
+    //} else {
         // cout << "PC out of range: 0x" << intToHex(PC) << ". No instruction to fetch." << endl;
-    }
+    //}
 }
 
 void Execute(int PC, int offset) {
@@ -539,7 +541,9 @@ void Execute(int PC, int offset) {
             
             Writeback(loaded_data,destReg);
         }else if (Type_Instruction == "S"){
+            alu_result = operandA + imm_value;
             int address =alu_result;
+            total_clock_cycles++;
             Mem("SW",address,operandB);
         }else if (Type_Instruction =="R"){
             //cout<< "yes it uses r type write"<<endl;
@@ -577,7 +581,7 @@ void Execute(int PC, int offset) {
     
 }
 int Mem(string instructionType, int address, int valueToStore = 0) {
-    int index = (address+offset) / 4 ;
+    int index = (address+offset_global) / 4 ;
     
     if (index < 0 || index >= 32) {
         cerr << "Memory access error: Address out of bounds\n";
@@ -595,6 +599,7 @@ int Mem(string instructionType, int address, int valueToStore = 0) {
         cerr << "Unknown instruction type in Mem()\n";
         return -1;
     }
+    offset_global=0;
 }
 
 void Writeback(int value, int destReg) {
@@ -678,25 +683,26 @@ int main() {
     rf[11]=4;
     d_mem[28]=5;
     d_mem[29]=16;
-    for (int i = 0; i <= instructions.size(); ++i) {
-        fetch(instructions[i]);
+    while (PC/4< instructions.size()) {
+        std::string instr = instructions[PC / 4];
+        fetch(instr);
         //make print function for all instruction
        
         if(alu_opcode == "0110011"){//Rtype
             cout <<"total_clock_cycles "<< total_clock_cycles <<" : " << endl;
-            cout << "0x"<<rd_global <<" is modified to 0x"<< intToHex(rf[rd_global]) <<endl;
+            cout << "x"<<rd_global <<" is modified to 0x"<< intToHex(rf[rd_global]) <<endl;
             cout << "pc is modified to 0x"<< intToHex(PC) << endl;
         }else if (alu_opcode == "0010011"){//Itype
             cout <<"total_clock_cycles "<< total_clock_cycles <<" : " << endl;
-            cout << "0x"<<rd_global <<" is modified to 0x"<< rs1_global <<endl;
+            cout << "x"<<rd_global <<" is modified to 0x"<< rs1_global <<endl;
             cout << "pc is modified to 0x"<< intToHex(PC) << endl;
         }else if (alu_opcode == "0000011"){//lw
             cout <<"total_clock_cycles "<< total_clock_cycles <<" : " << endl;
-            cout << "0x"<<rd_global <<" is modified to 0x"<< rs1_global <<endl;
+            cout << "x"<<rd_global <<" is modified to 0x"<< rs1_global <<endl;
             cout << "pc is modified to 0x"<< intToHex(PC) << endl;
         }else if (alu_opcode == "0100011"){//Stype
             cout <<"total_clock_cycles "<< total_clock_cycles <<" : " << endl;
-            cout << "memory 0x"<<rd_global <<" is modified to 0x"<< rs1_global <<endl;
+            cout << "memory x"<<intToHex(rf[rs1_global])<<" is modified to 0x"<< intToHex(rf[rd_global]) <<endl;
             cout << "pc is modified to 0x"<< intToHex(PC) << endl;
         }else if(alu_opcode == "1100011"){//branch
             cout <<"total_clock_cycles "<< total_clock_cycles <<" : " << endl;
@@ -704,11 +710,6 @@ int main() {
         }
         
     }
-    cout<< "lw x3, 4(x10)"<<endl;
-    cout<< "sub x5, x1, x2 "<<endl;
-    cout<< "beq x5, x3, 12 "<<endl;
-    cout<< "add x5, x5, x3 "<<endl;
-    cout<< "or x5, x11, x5 "<<endl;
-    cout<< "sw x5, 0(x10) "<<endl;
+   
     return 0;
 }
