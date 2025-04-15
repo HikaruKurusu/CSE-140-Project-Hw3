@@ -496,7 +496,10 @@ void fetch_file(const std::string& filename) {
     while (std::getline(file, line)) {
         instructions.push_back(line);
     }
-
+    cout << "Enter the program file name to run:" << endl;
+    cout<<endl;
+    cout << filename << endl;
+    cout<<endl;
     file.close();
 }
 void fetch( string instructions_taken) {
@@ -679,7 +682,6 @@ int main() {
     fetch_file("sample_part1.txt");
     branch_target = 0;
     is_branch_taken = false;
-    cout << "Enter the program file name to run:" << endl;
     rf[1]= 32;
     rf[2]= 5;
     rf[10]= 112;
@@ -695,21 +697,26 @@ int main() {
             cout <<"total_clock_cycles "<< total_clock_cycles <<" : " << endl;
             cout << "x"<<rd_global <<" is modified to 0x"<< intToHex(rf[rd_global]) <<endl;
             cout << "pc is modified to 0x"<< intToHex(PC) << endl;
+            cout<<endl;
         }else if (alu_opcode == "0010011"){//Itype
             cout <<"total_clock_cycles "<< total_clock_cycles <<" : " << endl;
             cout << "x"<<rd_global <<" is modified to 0x"<< rs1_global <<endl;
             cout << "pc is modified to 0x"<< intToHex(PC) << endl;
+            cout<<endl;
         }else if (alu_opcode == "0000011"){//lw
             cout <<"total_clock_cycles "<< total_clock_cycles <<" : " << endl;
             cout << "x"<<rd_global <<" is modified to 0x"<< rs1_global <<endl;
             cout << "pc is modified to 0x"<< intToHex(PC) << endl;
+            cout<<endl;
         }else if (alu_opcode == "0100011"){//Stype
             cout <<"total_clock_cycles "<< total_clock_cycles <<" : " << endl;
             cout << "memory x"<<intToHex(rf[rs1_global])<<" is modified to 0x"<< intToHex(rf[rd_global]) <<endl;
             cout << "pc is modified to 0x"<< intToHex(PC) << endl;
+            cout<<endl;
         }else if(alu_opcode == "1100011"){//branch
             cout <<"total_clock_cycles "<< total_clock_cycles <<" : " << endl;
             cout << "pc is modified to 0x"<< intToHex(PC) << endl;
+            cout<<endl;
         }
         
     }
