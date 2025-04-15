@@ -14,13 +14,6 @@ int alu_result = 0;
 int alu_zero=0;
 int offset = 0;
 int destReg=0;
-int RegWrite =0;
-int Branch = 0;
-int MemRead =0;
-int MemtoReg =0;
-int MemWrite=0;
-int AluSrc =0;
-int AluOp =0;
 int rs1_global;
 int rs2_global;
 int rd_global;
@@ -33,7 +26,7 @@ int alu_ctrl;
 string Type_Instruction;
 const int DMEM_SIZE = 32;
 int d_mem[DMEM_SIZE] = {0};
-int total_clock_cycles = 0;
+int TotalClockCycles = 0;
 
 void Execute( int PC, int offset); //calling function here so i dont have to move it 
 int Mem(string instructionType, int address, int valueToStore ); 
@@ -527,8 +520,8 @@ void fetch( string instructions_taken) {
 void Execute(int PC, int offset) {
     Control_Unit(alu_opcode,alu_funct3,alu_funct7);
     //cout<<alu_ctrl<<endl;
-    int branch_offset = offset<<1;
-    branch_target = (PC+4)+branch_offset;
+    // int branch_offset = offset<<1;
+    // branch_target = (PC+4)+branch_offset;
     int alu_result = 0;
     if (alu_ctrl == 0) {//R-Type and
         alu_result = operandA & operandB;
@@ -548,7 +541,7 @@ void Execute(int PC, int offset) {
         }else if (Type_Instruction == "S"){
             alu_result = operandA + imm_value;
             int address =alu_result;
-            total_clock_cycles++;
+            TotalClockCycles++;
             Mem("SW",address,operandB);
         }else if (Type_Instruction =="R"){
             //cout<< "yes it uses r type write"<<endl;
@@ -560,7 +553,7 @@ void Execute(int PC, int offset) {
         alu_zero = (alu_result == 0) ? 1 : 0;
         if(Type_Instruction=="B"){
             is_branch_taken = (alu_zero == 1);
-            total_clock_cycles++;
+            TotalClockCycles++;
             return;
         }else{
             Writeback(alu_result,destReg);
@@ -579,11 +572,7 @@ void Execute(int PC, int offset) {
         alu_zero=1;
     }else{
         alu_zero=0;
-    }
-    //cout<< alu_result<<" and "<< destReg<<endl;
-   
-    
-    
+    } 
 }
 int Mem(string instructionType, int address, int valueToStore = 0) {
     int index = (address+offset_global) / 4 ;
@@ -597,7 +586,6 @@ int Mem(string instructionType, int address, int valueToStore = 0) {
         return 0;
     }
     else if (instructionType == "LW") {
-        
         return d_mem[index];
     }
     else {
@@ -611,75 +599,33 @@ void Writeback(int value, int destReg) {
     if (destReg != 0) {
         rf[destReg] = value;
     }
-    total_clock_cycles++;
-    
+    TotalClockCycles++;
     
 }
 void Control_Unit(const std::string& opcode,const std::string& funct3, const std::string& funct7){
-    RegWrite =0;
-    Branch =0;
-    MemRead=0;
-    MemtoReg =0;
-    MemWrite =0;
-    AluSrc=0;
-    AluOp=0;
     if(opcode == "0110011"){//Rtype
-        RegWrite = 1;
-        AluSrc = 0;
-        MemtoReg = 0;
-        MemRead = 0;
-        MemWrite = 0;
-        Branch = 0;
-        AluOp = 2; 
         if (funct3 == "000" && funct7 == "0000000") alu_ctrl = 2; // ADD
         else if (funct3 == "000" && funct7 == "0100000") alu_ctrl = 6; // SUB
         else if (funct3 == "111") alu_ctrl = 0; // AND
         else if (funct3 == "110") alu_ctrl = 1; // OR
         else if (funct3 == "100") alu_ctrl = 3; // XOR
     }else if (opcode == "0010011"){//Itype
-        RegWrite = 1;
-        AluSrc = 1;
-        MemtoReg = 0;
-        MemRead = 0;
-        MemWrite = 0;
-        Branch = 0;
-        AluOp = 0;
         if (funct3 == "000") alu_ctrl = 2; // ADDI
         else if (funct3 == "111") alu_ctrl = 0; // ANDI
         else if (funct3 == "110") alu_ctrl = 1; // ORI
-    }else if (opcode == "0000011"){//lw
-        RegWrite = 1;
-        AluSrc = 1;
-        MemtoReg = 1;
-        MemRead = 1;
-        MemWrite = 0;
-        Branch = 0;
-        AluOp = 0; 
-        alu_ctrl = 2;
-    }else if (opcode == "0100011"){//Stype
-        RegWrite = 0;
-        AluSrc = 1;
-        MemtoReg = 0;
-        MemRead = 0;
-        MemWrite = 1;
-        Branch = 0;
-        AluOp = 0; 
+    }else if (opcode == "0000011" || opcode == "0100011"){//lw and sw
         alu_ctrl = 2;
     }else if(opcode == "1100011"){//branch
-        RegWrite = 0;
-        AluSrc = 0;
-        MemtoReg = 0;
-        MemRead = 0;
-        MemWrite = 0;
-        Branch = 1;
-        AluOp = 1; 
         alu_ctrl = 6; 
+    } else if(opcode == "1100111"){//jalr
+        alu_ctrl = 2; 
+    } else if(opcode == "1101111"){//jal
+        alu_ctrl = 2; 
     }
 }
 
-
 int main() {
-    fetch_file("sample_part1.txt");
+    fetch_file("sample_part2.txt");
     branch_target = 0;
     is_branch_taken = false;
     rf[1]= 32;
@@ -691,30 +637,28 @@ int main() {
     while (PC/4< instructions.size()) {
         std::string instr = instructions[PC / 4];
         fetch(instr);
-        //make print function for all instruction
-       
         if(alu_opcode == "0110011"){//Rtype
-            cout <<"total_clock_cycles "<< total_clock_cycles <<" : " << endl;
+            cout <<"TotalClockCycles "<< TotalClockCycles <<" : " << endl;
             cout << "x"<<rd_global <<" is modified to 0x"<< intToHex(rf[rd_global]) <<endl;
             cout << "pc is modified to 0x"<< intToHex(PC) << endl;
             cout<<endl;
         }else if (alu_opcode == "0010011"){//Itype
-            cout <<"total_clock_cycles "<< total_clock_cycles <<" : " << endl;
+            cout <<"TotalClockCycles "<< TotalClockCycles <<" : " << endl;
             cout << "x"<<rd_global <<" is modified to 0x"<< rs1_global <<endl;
             cout << "pc is modified to 0x"<< intToHex(PC) << endl;
             cout<<endl;
         }else if (alu_opcode == "0000011"){//lw
-            cout <<"total_clock_cycles "<< total_clock_cycles <<" : " << endl;
+            cout <<"TotalClockCycles "<< TotalClockCycles <<" : " << endl;
             cout << "x"<<rd_global <<" is modified to 0x"<< rs1_global <<endl;
             cout << "pc is modified to 0x"<< intToHex(PC) << endl;
             cout<<endl;
         }else if (alu_opcode == "0100011"){//Stype
-            cout <<"total_clock_cycles "<< total_clock_cycles <<" : " << endl;
+            cout <<"TotalClockCycles "<< TotalClockCycles <<" : " << endl;
             cout << "memory x"<<intToHex(rf[rs1_global])<<" is modified to 0x"<< intToHex(rf[rd_global]) <<endl;
             cout << "pc is modified to 0x"<< intToHex(PC) << endl;
             cout<<endl;
         }else if(alu_opcode == "1100011"){//branch
-            cout <<"total_clock_cycles "<< total_clock_cycles <<" : " << endl;
+            cout <<"TotalClockCycles "<< TotalClockCycles <<" : " << endl;
             cout << "pc is modified to 0x"<< intToHex(PC) << endl;
             cout<<endl;
         }
