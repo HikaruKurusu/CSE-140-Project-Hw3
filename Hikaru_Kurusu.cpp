@@ -628,12 +628,18 @@ int main() {
     fetch_file("sample_part2.txt");
     branch_target = 0;
     is_branch_taken = false;
-    rf[1]= 32;
-    rf[2]= 5;
-    rf[10]= 112;
-    rf[11]=4;
-    d_mem[28]=5;
-    d_mem[29]=16;
+    // rf[1]= 32;
+    // rf[2]= 5;
+    // rf[10]= 112;
+    // rf[11]=4;
+    // d_mem[28]=5;
+    // d_mem[29]=16;
+    rf[8]=32;
+    rf[10]=5;
+    rf[11]=2;
+    rf[12]=10;
+    rf[13]=15;
+
     while (PC/4< instructions.size()) {
         std::string instr = instructions[PC / 4];
         fetch(instr);
