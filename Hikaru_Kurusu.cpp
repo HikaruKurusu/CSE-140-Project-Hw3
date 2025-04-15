@@ -514,7 +514,7 @@ void fetch( string instructions_taken) {
     //if (PC / 4 < instructions.size()) {
         // cout << "Fetched instruction at PC = 0x" << intToHex(PC) << ": " << instructions[PC / 4] << endl;
     decode(instructions_taken);
-    
+    cout<< instructions_taken<<endl;
            
     //} else {
         // cout << "PC out of range: 0x" << intToHex(PC) << ". No instruction to fetch." << endl;
@@ -676,16 +676,23 @@ void Control_Unit(const std::string& opcode,const std::string& funct3, const std
 
 
 int main() {
-    fetch_file("sample_part1.txt");
+    fetch_file("sample_part2.txt");
     branch_target = 0;
     is_branch_taken = false;
     cout << "Enter the program file name to run:" << endl;
-    rf[1]= 32;
-    rf[2]= 5;
-    rf[10]= 112;
-    rf[11]=4;
-    d_mem[28]=5;
-    d_mem[29]=16;
+    // rf[1]= 32;
+    // rf[2]= 5;
+    // rf[10]= 112;
+    // rf[11]=4;
+    // d_mem[28]=5;
+    // d_mem[29]=16;
+    rf[8]=32;
+    rf[10]=5;
+    rf[11]=2;
+    rf[12]=10;
+    rf[13]=15;
+
+
     while (PC/4< instructions.size()) {
         std::string instr = instructions[PC / 4];
         fetch(instr);
@@ -711,7 +718,12 @@ int main() {
             cout <<"total_clock_cycles "<< total_clock_cycles <<" : " << endl;
             cout << "pc is modified to 0x"<< intToHex(PC) << endl;
         }
-        
+        //jal x1, 8
+        //jal x1, 16
+        //add x10,x11,x12
+        //sub x30, x13, x10
+        //jalr x1,0(x1)
+        //sw x30, 0(x8)
     }
    
     return 0;
