@@ -19,6 +19,7 @@ int rs2_global;
 int rd_global;
 int imm_value;
 int offset_global;
+int UJ_imm;
 string alu_opcode;
 string alu_funct3;
 string alu_funct7;
@@ -60,6 +61,7 @@ string getRs1(string binary) {
 }
 string getRs2(string binary) {
     int rs2_num = stoi(binary.substr(7, 5), nullptr, 2);
+    cout<< binary << "number "<< rs2_num<<endl;
     rs2_global = rs2_num;
     operandB = rf[rs2_num];
     
@@ -72,6 +74,7 @@ int zerotofour(string binary) {
     return rd_num;
 }
 string getRd(string binary) {
+    
     int rd_num = stoi(binary.substr(20, 5), nullptr, 2);
     destReg = rd_num;   
     rd_global = rd_num;
@@ -169,6 +172,7 @@ int getUJTypeImm(string binary) {
         return (value44 + 1) * -1;
     }
     int immVal = stoi(imm, nullptr, 2);
+    UJ_imm = immVal;
     return immVal;
 }
 
@@ -380,6 +384,7 @@ void decode(string instruction) {
             // cout << "Rs1: " << getRs1(instruction) << endl;
             // cout << "Rd: " << getRd(instruction) << endl;
             // cout << "Immediate: " << todecimalForI((instruction)) << " (or 0x" << intToHex(todecimalForI((instruction))) << ")" << endl;
+            Type_Instruction == "I_J";
             getRs1(instruction);
             getRd(instruction);
             todecimalForI((instruction));
@@ -467,6 +472,7 @@ void decode(string instruction) {
         // cout << "Operation: jal\n";
         // cout << "Rd: " << getRd(instruction) << endl;
         // cout << "Immediate: " << getUJTypeImm(instruction) << " (or 0x" << intToHex(getUJTypeImm(instruction)) << ")" << endl;
+        Type_Instruction = "UJ";
         getRd(instruction);
         getUJTypeImm(instruction);
         intToHex(getUJTypeImm(instruction));
@@ -510,6 +516,7 @@ void fetch( string instructions_taken) {
     //if (PC / 4 < instructions.size()) {
         // cout << "Fetched instruction at PC = 0x" << intToHex(PC) << ": " << instructions[PC / 4] << endl;
     decode(instructions_taken);
+    
     cout<< instructions_taken<<endl;
            
     //} else {
@@ -546,6 +553,13 @@ void Execute(int PC, int offset) {
         }else if (Type_Instruction =="R"){
             //cout<< "yes it uses r type write"<<endl;
             Writeback(alu_result,destReg);
+        }else if(Type_Instruction == "UJ"){
+            //Writeback(alu_result,destReg);
+        } else if(Type_Instruction == "I_J"){
+            // alu_result = operandA + imm_value;
+            // int address =alu_result;
+            // Mem("I_J",address,operandB);
+            // Writeback();
         }
        
     } else if (alu_ctrl == 6) {// beq , Rtype sub
@@ -559,12 +573,6 @@ void Execute(int PC, int offset) {
             Writeback(alu_result,destReg);
         }
         
-    } else if (alu_ctrl == 7) {//maybe not need
-        alu_result = (operandA < operandB) ? 1 : 0;
-        Writeback(alu_result,destReg);
-    } else if (alu_ctrl == 12) {//maybe not need
-        alu_result = ~(operandA | operandB);
-        Writeback(alu_result,destReg);
     } else {
         cout << "Invalid ALU control signal!" << alu_ctrl<< endl;
     }
@@ -625,22 +633,22 @@ void Control_Unit(const std::string& opcode,const std::string& funct3, const std
 }
 
 int main() {
-    fetch_file("sample_part2.txt");
+    fetch_file("sample_part1.txt");
     branch_target = 0;
     is_branch_taken = false;
     // This is for sample 1 
-    // rf[1]= 32;
-    // rf[2]= 5;
-    // rf[10]= 112;
-    // rf[11]=4;
-    // d_mem[28]=5;
-    // d_mem[29]=16;
+    rf[1]= 32;
+    rf[2]= 5;
+    rf[10]= 112;
+    rf[11]=4;
+    d_mem[28]=5;
+    d_mem[29]=16;
     // This is for sample 2 
-    rf[8]=32;
-    rf[10]=5;
-    rf[11]=2;
-    rf[12]=10;
-    rf[13]=15;
+    // rf[8]=32;
+    // rf[10]=5;
+    // rf[11]=2;
+    // rf[12]=10;
+    // rf[13]=15;
     while (PC/4< instructions.size()) {
         std::string instr = instructions[PC / 4];
         fetch(instr);
@@ -661,7 +669,8 @@ int main() {
             cout<<endl;
         }else if (alu_opcode == "0100011"){//Stype
             cout <<"TotalClockCycles "<< TotalClockCycles <<" : " << endl;
-            cout << "memory x"<<intToHex(rf[rs1_global])<<" is modified to 0x"<< intToHex(rf[rd_global]) <<endl;
+            cout << "memory x"<<intToHex(rf[rs1_global])<<" is modified to 0x"<< intToHex(rf[rs2_global]) <<endl;
+            cout<< "reg:" <<rd_global <<endl;
             cout << "pc is modified to 0x"<< intToHex(PC) << endl;
             cout<<endl;
         }else if(alu_opcode == "1100011"){//branch
@@ -669,15 +678,15 @@ int main() {
             cout << "pc is modified to 0x"<< intToHex(PC) << endl;
             cout<<endl;
         } else if(alu_opcode == "1101111"){//jal
-            cout <<"TotalClockCycles "<< TotalClockCycles <<" : " << endl;
-            cout << "x"<<rd_global <<" is modified to 0x"<< rs1_global <<endl;
-            cout << "pc is modified to 0x"<< intToHex(PC) << endl;
-            cout<<endl;
+            // cout <<"TotalClockCycles "<< TotalClockCycles <<" : " << endl;
+            // cout << "x1"<<" is modified to 0x"<< intToHex(PC)<<endl;
+            // cout << "pc is modified to 0x"<< intToHex(PC) << endl;
+            // cout<<endl;
         } else if(alu_opcode == "1100111"){//halr
-            cout <<"TotalClockCycles "<< TotalClockCycles <<" : " << endl;
-            cout << "x"<<rd_global <<" is modified to 0x"<< rs1_global <<endl;
-            cout << "pc is modified to 0x"<< intToHex(PC) << endl;
-            cout<<endl;
+            // cout <<"TotalClockCycles "<< TotalClockCycles <<" : " << endl;
+            // cout << "x1"<<" is modified to 0x"<< rf[rd_global] <<endl;
+            // cout << "pc is modified to 0x"<< intToHex(PC) << endl;
+            // cout<<endl;
         }
         //jal x1, 8
         //jal x1, 16
@@ -685,6 +694,7 @@ int main() {
         //sub x30, x13, x10
         //jalr x1,0(x1)
         //sw x30, 0(x8)
+        cout<<"x30:"<< rf[30]<<endl;
     }
    
     return 0;
