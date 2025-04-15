@@ -34,13 +34,12 @@ string Type_Instruction;
 const int DMEM_SIZE = 32;
 int d_mem[DMEM_SIZE] = {0};
 int total_clock_cycles = 0;
-<<<<<<< HEAD
-=======
+
 void Execute( int PC, int offset); //calling function here so i dont have to move it 
 int Mem(string instructionType, int address, int valueToStore ); 
 void Control_Unit(const std::string& opcode,const std::string& funct3, const std::string& funct7);
 void Writeback(int value, int destReg);
->>>>>>> Chris
+
 string intToHex(int num) {
     stringstream ss;
     ss << hex << num;
@@ -674,7 +673,7 @@ void Control_Unit(const std::string& opcode,const std::string& funct3, const std
         alu_ctrl = 6; 
     }
 }
->>>>>>> Chris
+
 
 int main() {
     fetch_file("sample_part1.txt");
