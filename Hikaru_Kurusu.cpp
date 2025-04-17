@@ -61,7 +61,6 @@ string getRs1(string binary) {
 }
 string getRs2(string binary) {
     int rs2_num = stoi(binary.substr(7, 5), nullptr, 2);
-    cout<< binary << "number "<< rs2_num<<endl;
     rs2_global = rs2_num;
     operandB = rf[rs2_num];
     
@@ -178,11 +177,6 @@ int getUJTypeImm(string binary) {
 
 
 void printR(string instruction, string funct3, string funct7) {
-    //cout << "Rs1: " << getRs1(instruction) << endl;
-    //cout << "Rs2: " << getRs2(instruction) << endl;
-    //cout << "Rd: " << getRd(instruction) << endl;
-    //cout << "Funct3: " << todecimal(funct3) << endl;
-    //cout << "Funct7: " << todecimal(funct7) << endl;
     getRs1(instruction);
     getRs2(instruction);
     getRd(instruction);
@@ -194,196 +188,127 @@ void decode(string instruction) {
     string opcode = op(instruction);
     string funct3 = getFunct3(instruction);
     string funct7 = getFunct7(instruction);
-    if (opcode == "0110011") {
-        // cout << "Instruction Type: R\n";
+    if (opcode == "0110011") { //R type
         if (funct3 == "000") {
-            if (funct7 == "0000000") {
-                // cout << "Operation: add\n";
+            if (funct7 == "0000000") {//add
                 Type_Instruction = "R";
                 alu_ctrl=2;
                 printR(instruction,funct3,funct7);
                 Execute(PC,offset);
-            } else if(funct7 == "0100000"){
-                 //cout << "Operation: sub\n";
-                
+            } else if(funct7 == "0100000"){ //sub                
                 alu_ctrl=6;
                 printR(instruction,funct3,funct7);
                 Execute(PC,offset);
             }
         } else if (funct3 == "111") {
-            if(funct7 == "0000000") {
-                // cout << "Operation: and\n";
-                
+            if(funct7 == "0000000") { //and
                 alu_ctrl=0;
                 printR(instruction,funct3,funct7);
                 Execute(PC,offset);
             }
         } else if (funct3 == "110") {
-            if(funct7 == "0000000") {
-                // cout << "Operation: or\n";
+            if(funct7 == "0000000") { //or
                 alu_ctrl=1;
                 printR(instruction,funct3,funct7);
                 Execute(PC,offset);
             }
         } else if (funct3 == "001") {
-            if(funct7 == "0000000") {
-                // cout << "Operation: sll\n";
+            if(funct7 == "0000000") { //sll
                 printR(instruction,funct3,funct7);
             }
         } else if (funct3 == "010") {
-            if(funct7 == "0000000") {
-                // cout << "Operation: slt\n";
+            if(funct7 == "0000000") {//slt
                 printR(instruction,funct3,funct7);
             }
         } else if (funct3 == "101") {
-            if(funct7 == "0100000") {
-                // cout << "Operation: sra\n";
+            if(funct7 == "0100000") {//sra
                 printR(instruction,funct3,funct7);
-            } else if (funct7 == "0000000") {
-                // cout << "Operation: srl\n";
+            } else if (funct7 == "0000000") {//srl
                 printR(instruction,funct3,funct7);
             }
         } else if (funct3 == "100") {
-            if(funct7 == "0000000") {
-                // cout << "Operation: xor\n";
+            if(funct7 == "0000000") {//xor
                 printR(instruction,funct3,funct7);
             }
         } else if (funct3 == "011") {
-            if(funct7 == "0000000") {
-                // cout << "Operation: sltu\n";
+            if(funct7 == "0000000") {//sltu
                 printR(instruction,funct3,funct7);
             }
         }
-    } else if (opcode == "0000011") {
-        // cout << "Instruction Type: I\n";
-        if(funct3 == "000") {
-            // cout << "Operation: lb\n";
-            // cout << "Rs1: " << getRs1(instruction) << endl;
-            // cout << "Rd: " << getRd(instruction) << endl;
-            // cout << "Immediate: " << todecimalForI((instruction)) << " (or 0x" << intToHex(todecimalForI((instruction))) << ")" << endl;
+    } else if (opcode == "0000011") {// type I
+        if(funct3 == "000") {//lb
             getRs1(instruction);
             getRd(instruction);
             todecimalForI((instruction));
             intToHex(todecimalForI((instruction)));
-        } else if (funct3 == "010") {
+        } else if (funct3 == "010") { //lw
             Type_Instruction = "I";
-            // cout << "Operation: lw\n";
-            // cout << "Rs1: " << getRs1(instruction) << endl;
-            // cout << "Rd: " << getRd(instruction) << endl;
-            // cout << "Immediate: " << todecimalForI((instruction)) << " (or 0x" << intToHex(todecimalForI((instruction))) << ")" << endl;
             getRs1(instruction);
             getRd(instruction);
             todecimalForI((instruction));
             intToHex(todecimalForI((instruction)));
-            
             alu_ctrl=2;
             Execute(PC,offset);
-        } else if (funct3 == "001") {
-            // cout << "Operation: lh\n";
-            // cout << "Rs1: " << getRs1(instruction) << endl;
-            // cout << "Rd: " << getRd(instruction) << endl;
-            // cout << "Immediate: " << todecimalForI((instruction)) << " (or 0x" << intToHex(todecimalForI((instruction))) << ")" << endl;
+        } else if (funct3 == "001") {//lh
             getRs1(instruction);
             getRd(instruction);
             todecimalForI((instruction));
             intToHex(todecimalForI((instruction)));
         }
-    } else if(opcode == "0010011") {
-        // cout << "Instruction Type: I\n";
-        if(funct3 == "011") {
-            // cout << "Operation: sltiu\n";
-            // cout << "Rs1: " << getRs1(instruction) << endl;
-            // cout << "Rd: " << getRd(instruction) << endl;
-            // cout << "Immediate: " << todecimalForI((instruction)) << " (or 0x" << intToHex(todecimalForI((instruction))) << ")" << endl;
+    } else if(opcode == "0010011") { //type I
+        if(funct3 == "011") {//sltiu
             getRs1(instruction);
             getRd(instruction);
             todecimalForI((instruction));
             intToHex(todecimalForI((instruction)));
-        } else if(funct3 == "000") {
-            // cout << "Operation: addi\n";
-            // cout << "Rs1: " << getRs1(instruction) << endl;
-            // cout << "Rd: " << getRd(instruction) << endl;
-            // cout << "Immediate: " << todecimalForI((instruction)) << " (or 0x" << intToHex(todecimalForI((instruction))) << ")" << endl;
+        } else if(funct3 == "000") { //addi
             getRs1(instruction);
             getRd(instruction);
             todecimalForI((instruction));
             intToHex(todecimalForI((instruction)));
-        } else if(funct3 == "111") {
-            // cout << "Operation: andi\n";
-            // cout << "Rs1: " << getRs1(instruction) << endl;
-            // cout << "Rd: " << getRd(instruction) << endl;
-            // cout << "Immediate: " << todecimalForI((instruction)) << " (or 0x" << intToHex(todecimalForI((instruction))) << ")" << endl;
+        } else if(funct3 == "111") {//andi
             getRs1(instruction);
             getRd(instruction);
             todecimalForI((instruction));
             intToHex(todecimalForI((instruction)));
-        } else if(funct3 == "110") {
-            // cout << "Operation: ori\n";
-            // cout << "Rs1: " << getRs1(instruction) << endl;
-            // cout << "Rd: " << getRd(instruction) << endl;
-            // cout << "Immediate: " << todecimalForI((instruction)) << " (or 0x" << intToHex(todecimalForI((instruction))) << ")" << endl;
+        } else if(funct3 == "110") {//ori
             getRs1(instruction);
             getRd(instruction);
             todecimalForI((instruction));
             intToHex(todecimalForI((instruction)));
         } else if(funct3 == "001") {
-            if(funct7 == "0000000") {
-                // cout << "Operation: slli\n";
-                // cout << "Rs1: " << getRs1(instruction) << endl;
-                // cout << "Rd: " << getRd(instruction) << endl;
-                // cout << "Immediate: " << zerotofour((instruction)) << " (or 0x" << intToHex(zerotofour((instruction))) << ")" << endl;
+            if(funct7 == "0000000") { //slli
                 getRs1(instruction);
                 getRd(instruction);
                 zerotofour((instruction));
                 intToHex(todecimalForI((instruction)));
             } 
-        } else if(funct3 == "010") {
-            // cout << "Operation: slti\n";
-            // cout << "Rs1: " << getRs1(instruction) << endl;
-            // cout << "Rd: " << getRd(instruction) << endl;
-            // cout << "Immediate: " << todecimalForI((instruction)) << " (or 0x" << intToHex(todecimalForI((instruction))) << ")" << endl;
+        } else if(funct3 == "010") {//slti
             getRs1(instruction);
             getRd(instruction);
             todecimalForI((instruction));
             intToHex(todecimalForI((instruction)));
         } else if(funct3 == "101") {
-            if(funct7 == "0100000") {
-                // cout << "Operation: srai\n";
-                // cout << "Rs1: " << getRs1(instruction) << endl;
-                // cout << "Rd: " << getRd(instruction) << endl;
-                // cout << "Immediate: " << zerotofour((instruction)) << " (or 0x" << intToHex(zerotofour((instruction))) << ")" << endl;
+            if(funct7 == "0100000") {//srai
                 getRs1(instruction);
                 getRd(instruction);
                 zerotofour((instruction));
                 intToHex(todecimalForI((instruction)));
-            } else if (funct7 == "0000000") {
-                // cout << "Operation: srli\n";
-                // cout << "Rs1: " << getRs1(instruction) << endl;
-                // cout << "Rd: " << getRd(instruction) << endl;
-                // cout << "Immediate: " << zerotofour((instruction)) << " (or 0x" << intToHex(zerotofour((instruction))) << ")" << endl;
+            } else if (funct7 == "0000000") {//srli
                 getRs1(instruction);
                 getRd(instruction);
                 zerotofour((instruction));
                 intToHex(todecimalForI((instruction)));
             }
-        } else if(funct3 == "100") {
-            // cout << "Operation: xori\n";
-            // cout << "Rs1: " << getRs1(instruction) << endl;
-            // cout << "Rd: " << getRd(instruction) << endl;
-            // cout << "Immediate: " << todecimalForI((instruction)) << " (or 0x" << intToHex(todecimalForI((instruction))) << ")" << endl;
+        } else if(funct3 == "100") {//xori
             getRs1(instruction);
             getRd(instruction);
             todecimalForI((instruction));
             intToHex(todecimalForI((instruction)));
         }
 
-    } else if (opcode == "1100111") {
-        // cout << "Instruction Type: I\n";
-        if(funct3 == "000") {
-            // cout << "Operation: jalr\n";
-            // cout << "Rs1: " << getRs1(instruction) << endl;
-            // cout << "Rd: " << getRd(instruction) << endl;
-            // cout << "Immediate: " << todecimalForI((instruction)) << " (or 0x" << intToHex(todecimalForI((instruction))) << ")" << endl;
+    } else if (opcode == "1100111") { //type I
+        if(funct3 == "000") {//jalr
             Type_Instruction == "I_J";
             getRs1(instruction);
             getRd(instruction);
@@ -391,31 +316,18 @@ void decode(string instruction) {
             intToHex(todecimalForI((instruction)));
         }
 
-    } else if (opcode == "0100011") {
-        // cout << "Instruction Type: S\n";
-        if(funct3 == "000") {
-            // cout << "Operation: sb\n";
-            // cout << "Rs1: " << getRs1(instruction) << endl;
-            // cout << "Rs2: " << getRs2(instruction) << endl;
-            // cout << "Immediate: " << getSTypeImm(instruction) << " (or 0x" << intToHex(getSTypeImm(instruction)) << ")" << endl;
+    } else if (opcode == "0100011") { //Type: S
+        if(funct3 == "000") { //sb
             getRs1(instruction);
             getRs2(instruction);
             getSTypeImm(instruction);
             intToHex(getSTypeImm(instruction));
-        } else if(funct3 == "001") {
-            // cout << "Operation: sh\n";
-            // cout << "Rs1: " << getRs1(instruction) << endl;
-            // cout << "Rs2: " << getRs2(instruction) << endl;
-            // cout << "Immediate: " << getSTypeImm(instruction) << " (or 0x" << intToHex(getSTypeImm(instruction)) << ")" << endl;
+        } else if(funct3 == "001") {//sh
             getRs1(instruction);
             getRs2(instruction);
             getSTypeImm(instruction);
             intToHex(getSTypeImm(instruction));
-        } else if(funct3 == "010") {
-            // cout << "Operation: sw\n";
-            // cout << "Rs1: " << getRs1(instruction) << endl;
-            // cout << "Rs2: " << getRs2(instruction) << endl;
-            // cout << "Immediate: " << getSTypeImm(instruction) << " (or 0x" << intToHex(getSTypeImm(instruction)) << ")" << endl;
+        } else if(funct3 == "010") {//sw
             getRs1(instruction);
             getRs2(instruction);
             getSTypeImm(instruction);
@@ -425,13 +337,8 @@ void decode(string instruction) {
             alu_ctrl=2;
         }
     }
-    else if (opcode == "1100011") {
-        // cout << "Instruction Type: SB\n";
-        if(funct3 == "000") {
-            // cout << "Operation: beq\n";
-            // cout << "Rs1: " << getRs1(instruction) << endl;
-            // cout << "Rs2: " << getRs2(instruction) << endl;
-            // cout << "Immediate: " << (getSBTypeImm(instruction)) << " (or 0x" << intToHex(getSBTypeImm(instruction)) << ")" << endl;
+    else if (opcode == "1100011") { // type SB
+        if(funct3 == "000") {//beq
             Type_Instruction ="B";
             getRs1(instruction);
             getRs2(instruction);
@@ -439,39 +346,23 @@ void decode(string instruction) {
             intToHex(getSBTypeImm(instruction));
             Execute(PC,offset);
             alu_ctrl=6;
-        } else if(funct3 == "001") {
-            // cout << "Operation: bne\n";
-            // cout << "Rs1: " << getRs1(instruction) << endl;
-            // cout << "Rs2: " << getRs2(instruction) << endl;
-            // cout << "Immediate: " << (getSBTypeImm(instruction)) << " (or 0x" << intToHex(getSBTypeImm(instruction)) << ")" << endl;
+        } else if(funct3 == "001") {// bne
             getRs1(instruction);
             getRs2(instruction);
             getSBTypeImm(instruction);
             intToHex(getSBTypeImm(instruction));
-        } else if(funct3 == "100") {
-            // cout << "Operation: blt\n";
-            // cout << "Rs1: " << getRs1(instruction) << endl;
-            // cout << "Rs2: " << getRs2(instruction) << endl;
-            // cout << "Immediate: " << (getSBTypeImm(instruction)) << " (or 0x" << intToHex(getSBTypeImm(instruction)) << ")" << endl;
+        } else if(funct3 == "100") {//blt
             getRs1(instruction);
             getRs2(instruction);
             getSBTypeImm(instruction);
             intToHex(getSBTypeImm(instruction));
-        } else if(funct3 == "101") {
-            // cout << "Operation: bge\n";
-            // cout << "Rs1: " << getRs1(instruction) << endl;
-            // cout << "Rs2: " << getRs2(instruction) << endl;
-            // cout << "Immediate: " << (getSBTypeImm(instruction)) << " (or 0x" << intToHex(getSBTypeImm(instruction)) << ")" << endl;
+        } else if(funct3 == "101") {//bge
             getRs1(instruction);
             getRs2(instruction);
             getSBTypeImm(instruction);
             intToHex(getSBTypeImm(instruction));
         }
-    } else if (opcode == "1101111") {
-        // cout << "Instruction Type: UJ\n";
-        // cout << "Operation: jal\n";
-        // cout << "Rd: " << getRd(instruction) << endl;
-        // cout << "Immediate: " << getUJTypeImm(instruction) << " (or 0x" << intToHex(getUJTypeImm(instruction)) << ")" << endl;
+    } else if (opcode == "1101111") { //Instruction Type: UJ jal
         Type_Instruction = "UJ";
         getRd(instruction);
         getUJTypeImm(instruction);
@@ -485,12 +376,10 @@ void decode(string instruction) {
 // Load all instructions from the file (do this once)
 void fetch_file(const std::string& filename) {
     std::ifstream file(filename);
-
     if (!file) {
         std::cerr << "Error: Could not open file '" << filename << "'." << std::endl;
         return;
     }
-
     std::string line;
     while (std::getline(file, line)) {
         instructions.push_back(line);
@@ -503,7 +392,6 @@ void fetch_file(const std::string& filename) {
 }
 void fetch( string instructions_taken) {
     int next_pc = PC + 4; // Next sequential instruction address
-
     // Choose next PC: if branch taken, use branch_target, else use next_pc
     if (is_branch_taken) {
         //cout << "Branch taken. Jumping to 0x" << intToHex(branch_target) << endl;
@@ -511,7 +399,6 @@ void fetch( string instructions_taken) {
     } else {
         PC = next_pc;
     }
-
     // Simulate instruction fetch
     //if (PC / 4 < instructions.size()) {
         // cout << "Fetched instruction at PC = 0x" << intToHex(PC) << ": " << instructions[PC / 4] << endl;
@@ -523,7 +410,6 @@ void fetch( string instructions_taken) {
         // cout << "PC out of range: 0x" << intToHex(PC) << ". No instruction to fetch." << endl;
     //}
 }
-
 void Execute(int PC, int offset) {
     Control_Unit(alu_opcode,alu_funct3,alu_funct7);
     //cout<<alu_ctrl<<endl;
@@ -633,22 +519,22 @@ void Control_Unit(const std::string& opcode,const std::string& funct3, const std
 }
 
 int main() {
-    fetch_file("sample_part1.txt");
+    fetch_file("sample_part2.txt");
     branch_target = 0;
     is_branch_taken = false;
     // This is for sample 1 
-    rf[1]= 32;
-    rf[2]= 5;
-    rf[10]= 112;
-    rf[11]=4;
-    d_mem[28]=5;
-    d_mem[29]=16;
+    // rf[1]= 32;
+    // rf[2]= 5;
+    // rf[10]= 112;
+    // rf[11]=4;
+    // d_mem[28]=5;
+    // d_mem[29]=16;
     // This is for sample 2 
-    // rf[8]=32;
-    // rf[10]=5;
-    // rf[11]=2;
-    // rf[12]=10;
-    // rf[13]=15;
+    rf[8]=32;
+    rf[10]=5;
+    rf[11]=2;
+    rf[12]=10;
+    rf[13]=15;
     while (PC/4< instructions.size()) {
         std::string instr = instructions[PC / 4];
         fetch(instr);
@@ -670,7 +556,6 @@ int main() {
         }else if (alu_opcode == "0100011"){//Stype
             cout <<"TotalClockCycles "<< TotalClockCycles <<" : " << endl;
             cout << "memory x"<<intToHex(rf[rs1_global])<<" is modified to 0x"<< intToHex(rf[rs2_global]) <<endl;
-            cout<< "reg:" <<rd_global <<endl;
             cout << "pc is modified to 0x"<< intToHex(PC) << endl;
             cout<<endl;
         }else if(alu_opcode == "1100011"){//branch
@@ -678,15 +563,15 @@ int main() {
             cout << "pc is modified to 0x"<< intToHex(PC) << endl;
             cout<<endl;
         } else if(alu_opcode == "1101111"){//jal
-            // cout <<"TotalClockCycles "<< TotalClockCycles <<" : " << endl;
-            // cout << "x1"<<" is modified to 0x"<< intToHex(PC)<<endl;
-            // cout << "pc is modified to 0x"<< intToHex(PC) << endl;
-            // cout<<endl;
-        } else if(alu_opcode == "1100111"){//halr
-            // cout <<"TotalClockCycles "<< TotalClockCycles <<" : " << endl;
-            // cout << "x1"<<" is modified to 0x"<< rf[rd_global] <<endl;
-            // cout << "pc is modified to 0x"<< intToHex(PC) << endl;
-            // cout<<endl;
+            cout <<"TotalClockCycles "<< TotalClockCycles <<" : " << endl;
+            cout << "x1"<<" is modified to 0x"<< intToHex(PC)<<endl;
+            cout << "pc is modified to 0x"<< UJ_imm << endl;
+            cout<<endl;
+        } else if(alu_opcode == "1100111"){//jalr
+            cout <<"TotalClockCycles "<< TotalClockCycles <<" : " << endl;
+            cout << "x1"<<" is modified to 0x"<< rf[rd_global] <<endl;
+            cout << "pc is modified to 0x"<< intToHex(PC) << endl;
+            cout<<endl;
         }
         //jal x1, 8
         //jal x1, 16
@@ -694,7 +579,7 @@ int main() {
         //sub x30, x13, x10
         //jalr x1,0(x1)
         //sw x30, 0(x8)
-        cout<<"x30:"<< rf[30]<<endl;
+        // cout<<"x30:"<< rf[30]<<endl;
     }
    
     return 0;
