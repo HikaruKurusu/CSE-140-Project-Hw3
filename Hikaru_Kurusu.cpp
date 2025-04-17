@@ -440,12 +440,13 @@ void Execute(int PC, int offset) {
             //cout<< "yes it uses r type write"<<endl;
             Writeback(alu_result,destReg);
         }else if(Type_Instruction == "UJ"){
-            //Writeback(alu_result,destReg);
+            Writeback(alu_result,destReg);
+            // TotalClockCycles++;
         } else if(Type_Instruction == "I_J"){
             // alu_result = operandA + imm_value;
             // int address =alu_result;
             // Mem("I_J",address,operandB);
-            // Writeback();
+            TotalClockCycles++;
         }
        
     } else if (alu_ctrl == 6) {// beq , Rtype sub
