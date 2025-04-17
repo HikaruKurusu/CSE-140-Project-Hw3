@@ -314,6 +314,7 @@ void decode(string instruction) {
             getRd(instruction);
             todecimalForI((instruction));
             intToHex(todecimalForI((instruction)));
+            TotalClockCycles++;
         }
 
     } else if (opcode == "0100011") { //Type: S
@@ -367,6 +368,7 @@ void decode(string instruction) {
         getRd(instruction);
         getUJTypeImm(instruction);
         intToHex(getUJTypeImm(instruction));
+        TotalClockCycles++;
     }
     else {
         cout << "not valid\n";
@@ -429,24 +431,21 @@ void Execute(int PC, int offset) {
             //cout<<"yes it goes to IIIIIII"<<endl;
             int address =alu_result;
             int loaded_data =Mem("LW",address,1);
-            
             Writeback(loaded_data,destReg);
-        }else if (Type_Instruction == "S"){
+        } else if (Type_Instruction == "S"){
             alu_result = operandA + imm_value;
             int address =alu_result;
             TotalClockCycles++;
             Mem("SW",address,operandB);
-        }else if (Type_Instruction =="R"){
+        } else if (Type_Instruction =="R"){
             //cout<< "yes it uses r type write"<<endl;
             Writeback(alu_result,destReg);
-        }else if(Type_Instruction == "UJ"){
+        } else if(Type_Instruction == "UJ"){
             Writeback(alu_result,destReg);
-            // TotalClockCycles++;
         } else if(Type_Instruction == "I_J"){
             // alu_result = operandA + imm_value;
             // int address =alu_result;
             // Mem("I_J",address,operandB);
-            TotalClockCycles++;
         }
        
     } else if (alu_ctrl == 6) {// beq , Rtype sub
@@ -461,7 +460,7 @@ void Execute(int PC, int offset) {
         }
         
     } else {
-        cout << "Invalid ALU control signal!" << alu_ctrl<< endl;
+        cout << "Invalid ALU control signal!" << alu_ctrl  << endl;
     }
     if(alu_result ==0){
         alu_zero=1;
