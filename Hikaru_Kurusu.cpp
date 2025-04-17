@@ -633,22 +633,22 @@ void Control_Unit(const std::string& opcode,const std::string& funct3, const std
 }
 
 int main() {
-    fetch_file("sample_part1.txt");
+    fetch_file("sample_part2.txt");
     branch_target = 0;
     is_branch_taken = false;
     // This is for sample 1 
-    rf[1]= 32;
-    rf[2]= 5;
-    rf[10]= 112;
-    rf[11]=4;
-    d_mem[28]=5;
-    d_mem[29]=16;
+    // rf[1]= 32;
+    // rf[2]= 5;
+    // rf[10]= 112;
+    // rf[11]=4;
+    // d_mem[28]=5;
+    // d_mem[29]=16;
     // This is for sample 2 
-    // rf[8]=32;
-    // rf[10]=5;
-    // rf[11]=2;
-    // rf[12]=10;
-    // rf[13]=15;
+    rf[8]=32;
+    rf[10]=5;
+    rf[11]=2;
+    rf[12]=10;
+    rf[13]=15;
     while (PC/4< instructions.size()) {
         std::string instr = instructions[PC / 4];
         fetch(instr);
@@ -670,7 +670,7 @@ int main() {
         }else if (alu_opcode == "0100011"){//Stype
             cout <<"TotalClockCycles "<< TotalClockCycles <<" : " << endl;
             cout << "memory x"<<intToHex(rf[rs1_global])<<" is modified to 0x"<< intToHex(rf[rs2_global]) <<endl;
-            cout<< "reg:" <<rd_global <<endl;
+            //cout<< "reg:" <<rd_global <<endl;
             cout << "pc is modified to 0x"<< intToHex(PC) << endl;
             cout<<endl;
         }else if(alu_opcode == "1100011"){//branch
@@ -678,15 +678,15 @@ int main() {
             cout << "pc is modified to 0x"<< intToHex(PC) << endl;
             cout<<endl;
         } else if(alu_opcode == "1101111"){//jal
-            // cout <<"TotalClockCycles "<< TotalClockCycles <<" : " << endl;
-            // cout << "x1"<<" is modified to 0x"<< intToHex(PC)<<endl;
-            // cout << "pc is modified to 0x"<< intToHex(PC) << endl;
-            // cout<<endl;
+            cout <<"TotalClockCycles "<< TotalClockCycles <<" : " << endl;
+            cout << "x1"<<" is modified to 0x"<< intToHex(PC)<<endl;
+            cout << "pc is modified to 0x"<< intToHex(PC) << endl;
+            cout<<endl;
         } else if(alu_opcode == "1100111"){//halr
-            // cout <<"TotalClockCycles "<< TotalClockCycles <<" : " << endl;
-            // cout << "x1"<<" is modified to 0x"<< rf[rd_global] <<endl;
-            // cout << "pc is modified to 0x"<< intToHex(PC) << endl;
-            // cout<<endl;
+            cout <<"TotalClockCycles "<< TotalClockCycles <<" : " << endl;
+            cout << "x1"<<" is modified to 0x"<< rf[rd_global] <<endl;
+            cout << "pc is modified to 0x"<< intToHex(PC) << endl;
+            cout<<endl;
         }
         //jal x1, 8
         //jal x1, 16
@@ -694,7 +694,7 @@ int main() {
         //sub x30, x13, x10
         //jalr x1,0(x1)
         //sw x30, 0(x8)
-        cout<<"x30:"<< rf[30]<<endl;
+        //cout<<"x30:"<< rf[30]<<endl;
     }
    
     return 0;
