@@ -73,7 +73,6 @@ int zerotofour(string binary) {
     return rd_num;
 }
 string getRd(string binary) {
-    
     int rd_num = stoi(binary.substr(20, 5), nullptr, 2);
     destReg = rd_num;   
     rd_global = rd_num;
