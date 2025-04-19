@@ -44,6 +44,10 @@ int MemToReg = 0;
 int MemRead = 0;
 int AluOp = 0;
 
+int recieved = 0;
+
+int total_clock_cycles = 0;
+void controlUnit();
 string intToHex(int num) {
     stringstream ss;
     ss << hex << num;
@@ -173,10 +177,10 @@ void decode(string instruction) {
     string funct3 = getFunct3(instruction);
     string funct7 = getFunct7(instruction);
     if (opcode == "0110011") {
-        cout << "Instruction Type: R\n";
+        // cout << "Instruction Type: R\n";
         if (funct3 == "000") {
             if (funct7 == "0000000") {
-                cout << "Operation: add\n";
+                // cout << "Operation: add\n";
 
                 rs1G = getRs1(instruction);
                 rs2G = getRs2(instruction);
@@ -186,7 +190,7 @@ void decode(string instruction) {
                 alu_ctrl = "0010";
                 
             } else if(funct7 == "0100000"){
-                cout << "Operation: sub\n";
+                // cout << "Operation: sub\n";
 
                 rs1G = getRs1(instruction);
                 rs2G = getRs2(instruction);
@@ -197,87 +201,87 @@ void decode(string instruction) {
             }
         } else if (funct3 == "111") {
             if(funct7 == "0000000") {
-                cout << "Operation: and\n";
+                // cout << "Operation: and\n";
                 
             }
         } else if (funct3 == "110") {
             if(funct7 == "0000000") {
-                cout << "Operation: or\n";
+                // cout << "Operation: or\n";
                 
             }
         } else if (funct3 == "001") {
             if(funct7 == "0000000") {
-                cout << "Operation: sll\n";
+                // cout << "Operation: sll\n";
                 
             }
         } else if (funct3 == "010") {
             if(funct7 == "0000000") {
-                cout << "Operation: slt\n";
+                // cout << "Operation: slt\n";
                 
             }
         } else if (funct3 == "101") {
             if(funct7 == "0100000") {
-                cout << "Operation: sra\n";
+                // cout << "Operation: sra\n";
                 
             } else if (funct7 == "0000000") {
-                cout << "Operation: srl\n";
+                // cout << "Operation: srl\n";
                 
             }
         } else if (funct3 == "100") {
             if(funct7 == "0000000") {
-                cout << "Operation: xor\n";
+                // cout << "Operation: xor\n";
                 
             }
         } else if (funct3 == "011") {
             if(funct7 == "0000000") {
-                cout << "Operation: sltu\n";
+                // cout << "Operation: sltu\n";
             }
         }
     } else if (opcode == "0000011") {
-        cout << "Instruction Type: I\n";
+        // cout << "Instruction Type: I\n";
         if(funct3 == "000") {
-            cout << "Operation: lb\n";
+            // cout << "Operation: lb\n";
         } else if (funct3 == "010") {
-            cout << "Operation: lw\n";
+            // cout << "Operation: lw\n";
         } else if (funct3 == "001") {
-            cout << "Operation: lh\n";
+            // cout << "Operation: lh\n";
         }
     } else if(opcode == "0010011") {
-        cout << "Instruction Type: I\n";
+        // cout << "Instruction Type: I\n";
         if(funct3 == "011") {
-            cout << "Operation: sltiu\n";
+            // cout << "Operation: sltiu\n";
            
         } else if(funct3 == "000") {
-            cout << "Operation: addi\n";
+            // cout << "Operation: addi\n";
            
         } else if(funct3 == "111") {
-            cout << "Operation: andi\n";
+            // cout << "Operation: andi\n";
            
         } else if(funct3 == "110") {
-            cout << "Operation: ori\n";
+            // cout << "Operation: ori\n";
            
         } else if(funct3 == "001") {
             if(funct7 == "0000000") {
-                cout << "Operation: slli\n";
+                // cout << "Operation: slli\n";
             } 
         } else if(funct3 == "010") {
-            cout << "Operation: slti\n";
+            // cout << "Operation: slti\n";
            
         } else if(funct3 == "101") {
             if(funct7 == "0100000") {
-                cout << "Operation: srai\n";
+                // cout << "Operation: srai\n";
             } else if (funct7 == "0000000") {
-                cout << "Operation: srli\n";
+                // cout << "Operation: srli\n";
             }
         } else if(funct3 == "100") {
-            cout << "Operation: xori\n";
+            // cout << "Operation: xori\n";
            
         }
 
     } else if (opcode == "1100111") {
-        cout << "Instruction Type: I\n";
+        // cout << "Instruction Type: I\n";
         if(funct3 == "000") {
-            cout << "Operation: jalr\n";
+            // cout << "Operation: jalr\n";
 
             rs1G = getRs1(instruction);
             rdG = getRd(instruction);
@@ -288,13 +292,13 @@ void decode(string instruction) {
         }
 
     } else if (opcode == "0100011") {
-        cout << "Instruction Type: S\n";
+        // cout << "Instruction Type: S\n";
         if(funct3 == "000") {
-            cout << "Operation: sb\n";
+            // cout << "Operation: sb\n";
         } else if(funct3 == "001") {
-            cout << "Operation: sh\n";
+            // cout << "Operation: sh\n";
         } else if(funct3 == "010") {
-            cout << "Operation: sw\n";
+            // cout << "Operation: sw\n";
 
             rs1G = getRs1(instruction);
             rs2G = getRs2(instruction);
@@ -305,7 +309,7 @@ void decode(string instruction) {
         }
     }
     else if (opcode == "1100011") {
-        cout << "Instruction Type: SB\n";
+        // cout << "Instruction Type: SB\n";
         if(funct3 == "000") {
             cout << "Operation: beq\n";
         } else if(funct3 == "001") {
@@ -316,8 +320,8 @@ void decode(string instruction) {
             cout << "Operation: bge\n";
         }
     } else if (opcode == "1101111") {
-        cout << "Instruction Type: UJ\n";
-        cout << "Instruction: jal\n";
+        // cout << "Instruction Type: UJ\n";
+        // cout << "Instruction: jal\n";
 
         rdG = getRd(instruction);
         ImmG = getUJTypeImm(instruction);
@@ -333,6 +337,7 @@ void decode(string instruction) {
 
 // Load all instructions from the file (do this once)
 void loadFile(const string& filename) {
+    cout<< filename <<endl;
     ifstream file(filename);
     string line;
     if (!file) {
@@ -353,7 +358,7 @@ void fetch() {
 void execute() {
     if(alu_ctrl == "0010") {
         ctrl_sig = op1 + op2;
-    } else if(alu_ctrl == "0010") {
+    } else if(alu_ctrl == "0110") {
         ctrl_sig = op1 - op2;
     }
     if(ctrl_sig == 0) {
@@ -465,14 +470,47 @@ void controlUnit() {
     }
 
 }
+int Mem(){
+    int index =(ctrl_sig+ImmG)/4;
+    if(  MemRead == 1 ){
+        recieved = D_mem[index];
+
+    }else{
+        D_mem[index]=  ctrl_sig;
+    }   
+}
+int Writeback(){
+    rf[rdG]= recieved;
+    total_clock_cycles++;
+    cout<<"total_clock_cycles "<< total_clock_cycles<<" :" <<endl;
+} 
 int main() {
+    cout<< "Enter the program file name to run"<<endl;
+    cout<<endl;
     loadFile("sample_part2.txt");
     int i = 0;
     while(instructions.size() > i) {
         fetch();
+        cout<<endl;
         decode(currInstructions);
-
+        execute();
+        Mem();
+        Writeback();
+        
+        if( MemWrite == 1 ){
+        
+            cout<<"memory x"<<ctrl_sig << " is modified to 0x"<<rf[rdG]<<endl;
+        }
+        if(RegWrite==1){
+            cout<<"0x"<<rdG << " is modified to 0x"<< rf[rdG]<<endl;
+        }
+            
+            
+        
+        cout<< "pc is modified to x"<< intToHex(PC)<<endl;
+        cout<<endl;
         i++;
+        
     }
     
     return 0;
