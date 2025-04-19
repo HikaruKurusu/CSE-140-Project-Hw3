@@ -504,10 +504,10 @@ int main() {
         
         if( MemWrite == 1 ){
         
-            cout<<"memory x"<<ctrl_sig << " is modified to 0x"<<rf[rdG]<<endl;
+            cout<<"memory x"<<intToHex(ctrl_sig) << " is modified to 0x"<<rf[rdG]<<endl;
         }
         if(RegWrite==1){
-            cout<<"0x"<<rdG << " is modified to 0x"<< rf[rdG]<<endl;
+            cout<<"0x"<<rdG << " is modified to 0x"<< ctrl_sig<<endl;
         }
             
             
