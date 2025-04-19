@@ -485,6 +485,11 @@ int Writeback(){
     cout<<"total_clock_cycles "<< total_clock_cycles<<" :" <<endl;
 } 
 int main() {
+    rf[8]=32;
+    rf[10]=5;
+    rf[11]=2;
+    rf[12]=10;
+    rf[13]=15;
     cout<< "Enter the program file name to run"<<endl;
     cout<<endl;
     loadFile("sample_part2.txt");
