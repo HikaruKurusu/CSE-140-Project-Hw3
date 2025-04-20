@@ -43,6 +43,10 @@ int MemWrite = 0;
 int MemToReg = 0;
 int MemRead = 0;
 int AluOp = 0;
+int jal_sig = 0;
+int jalr_sig =0;
+
+
 
 int recieved = 0;
 
@@ -202,12 +206,22 @@ void decode(string instruction) {
         } else if (funct3 == "111") {
             if(funct7 == "0000000") {
                 // cout << "Operation: and\n";
-                
+                rs1G = getRs1(instruction);
+                rs2G = getRs2(instruction);
+                rdG = getRd(instruction);
+                op1 = rf[rs1G];
+                op2 = rf[rs2G];
+                alu_ctrl = "0000";
             }
         } else if (funct3 == "110") {
             if(funct7 == "0000000") {
                 // cout << "Operation: or\n";
-                
+                rs1G = getRs1(instruction);
+                rs2G = getRs2(instruction);
+                rdG = getRd(instruction);
+                op1 = rf[rs1G];
+                op2 = rf[rs2G];
+                alu_ctrl = "0001";
             }
         } else if (funct3 == "001") {
             if(funct7 == "0000000") {
@@ -243,6 +257,12 @@ void decode(string instruction) {
             // cout << "Operation: lb\n";
         } else if (funct3 == "010") {
             // cout << "Operation: lw\n";
+            rs1G = getRs1(instruction);
+            ImmG = todecimalForI((instruction));
+            rdG = getRd(instruction);
+            op1 = rf[rs1G];
+            op2 = ImmG;
+            alu_ctrl = "0010";
         } else if (funct3 == "001") {
             // cout << "Operation: lh\n";
         }
@@ -253,13 +273,28 @@ void decode(string instruction) {
            
         } else if(funct3 == "000") {
             // cout << "Operation: addi\n";
-           
+            rs1G =getRs1(instruction);
+            rdG = getRd(instruction);
+            ImmG = todecimalForI((instruction));
+            op1 =rf[rs1G];
+            op2 = ImmG;
+            alu_ctrl="0010";
         } else if(funct3 == "111") {
             // cout << "Operation: andi\n";
-           
+           rs1G =getRs1(instruction);
+           rdG = getRd(instruction);
+           ImmG = todecimalForI((instruction));
+           op1 = rf[rs1G];
+           op2 = ImmG;
+           alu_ctrl="0000";
         } else if(funct3 == "110") {
             // cout << "Operation: ori\n";
-           
+           rs1G =getRs1(instruction);
+           rdG = getRd(instruction);
+           ImmG = todecimalForI((instruction));
+           op1 =rf[rs1G];
+           op2 =ImmG;
+           alu_ctrl="0001";
         } else if(funct3 == "001") {
             if(funct7 == "0000000") {
                 // cout << "Operation: slli\n";
@@ -311,13 +346,20 @@ void decode(string instruction) {
     else if (opcode == "1100011") {
         // cout << "Instruction Type: SB\n";
         if(funct3 == "000") {
-            cout << "Operation: beq\n";
+            // cout << "Operation: beq\n";
+            rs1G = getRs1(instruction);
+            rs2G = getRs2(instruction);
+            ImmG = getSBTypeImm(instruction);
+            op1 = rf[rs1G];
+            op2 = rf[rs2G];
+            alu_ctrl = "0110";
         } else if(funct3 == "001") {
-            cout << "Operation: bne\n";
+            // cout << "Operation: bne\n";
+
         } else if(funct3 == "100") {
-            cout << "Operation: blt\n";
+            // cout << "Operation: blt\n";
         } else if(funct3 == "101") {
-            cout << "Operation: bge\n";
+            // cout << "Operation: bge\n";
         }
     } else if (opcode == "1101111") {
         // cout << "Instruction Type: UJ\n";
@@ -356,11 +398,17 @@ void fetch() {
 }
 
 void execute() {
-    if(alu_ctrl == "0010") {
+    if(alu_ctrl == "0010") {//lw add sw
         ctrl_sig = op1 + op2;
-    } else if(alu_ctrl == "0110") {
+       
+    } else if(alu_ctrl == "0110") {//sub beq
         ctrl_sig = op1 - op2;
-    }
+        
+    }else if (alu_ctrl == "0000") {//and
+        ctrl_sig = op1 & op2;
+    }   else if (alu_ctrl == "0001") {//or
+        ctrl_sig = op1 | op2;
+    }     
     if(ctrl_sig == 0) {
         alu_zero = 1;
         branch_target = PC + ImmG;
@@ -377,7 +425,9 @@ void controlUnit() {
         MemToReg = 0;
         MemRead = 0;
         AluOp = 2; 
-    } else if(opcodeG == "000010") { // lw
+        jal_sig = 0;
+        jalr_sig = 0;
+    } else if(opcodeG == "0000011") { // lw
         RegWrite = 1;
         branch = 0;
         aluSrc = 1;
@@ -385,6 +435,8 @@ void controlUnit() {
         MemToReg = 1;
         MemRead = 1;
         AluOp = 0;
+        jal_sig = 0;
+        jalr_sig = 0;
     } else if(opcodeG == "0100011") { // sw
         RegWrite = 0;
         branch = 0;
@@ -393,6 +445,8 @@ void controlUnit() {
         MemToReg = 0;
         MemRead = 0;
         AluOp = 0;
+        jal_sig = 0;
+        jalr_sig = 0;
     } else if(opcodeG == "1100111") { // jalr
         RegWrite = 1;
         branch = 0;
@@ -401,6 +455,10 @@ void controlUnit() {
         MemToReg = 0;
         MemRead = 0;
         AluOp = 0;
+        jal_sig = 1;
+        jalr_sig =1;
+        
+
     } else if(opcodeG == "1101111") { // jal
         RegWrite = 1;
         branch = 0;
@@ -409,6 +467,28 @@ void controlUnit() {
         MemToReg = 0;
         MemRead = 0;
         AluOp = 0;
+        jal_sig = 1;
+        jalr_sig = 0;
+    }else if(opcodeG == "0010011"){//I type
+        RegWrite = 1;
+        branch = 0;
+        aluSrc = 1;
+        MemWrite = 0;
+        MemToReg = 0;
+        MemRead = 0;
+        AluOp = 0;
+        jal_sig = 0;
+        jalr_sig = 0;
+    }else if(opcodeG == "1100011"){//beq
+        RegWrite = 0;
+        branch = 1;
+        aluSrc = 0;
+        MemWrite = 0;
+        MemToReg = 0;
+        MemRead = 0;
+        AluOp = 0;
+        jal_sig = 0;
+        jalr_sig = 0;
     }
     //ALU COntrol RIGHT HERE
     if(AluOp == 0) {
@@ -471,48 +551,80 @@ void controlUnit() {
 
 }
 int Mem(){
-    int index =(ctrl_sig+ImmG)/4;
+   
+    int index =(ctrl_sig)/4;
     if(  MemRead == 1 ){
         recieved = D_mem[index];
 
-    }else{
-        D_mem[index]=  ctrl_sig;
+    }else if (MemWrite == 1){
+        D_mem[index]=  rf[rs2G];
+        
     }   
 }
 int Writeback(){
-    rf[rdG]= recieved;
+    if(  RegWrite == 1 ){
+        
+        if(MemRead == 1){
+            rf[rdG] = recieved;
+           
+        }else{
+            if(jal_sig == 1){
+             
+                if(jalr_sig==1){
+                    PC = rf[rs1G]+ImmG;
+                }else{
+                    
+                    PC = PC + ImmG - 4 ;
+                    
+                }
+                rf[rdG] = nextPC;
+            }else{
+                
+                rf[rdG] = ctrl_sig;
+            }
+            
+        }
+    }
+    
+  
     total_clock_cycles++;
     cout<<"total_clock_cycles "<< total_clock_cycles<<" :" <<endl;
 } 
 int main() {
-    rf[8]=32;
-    rf[10]=5;
-    rf[11]=2;
-    rf[12]=10;
-    rf[13]=15;
+    //sample_part1.txt
+    // rf[1]=0x20;
+    // rf[2]=0x5;
+    // rf[10]=0x70;
+    // rf[11]=0x4;
+    // D_mem[28]=0x5;
+    // D_mem[29]=0x10;
+    //sample_part2.txt 
+    rf[8]=0x20;
+    rf[10]=0x5;
+    rf[11]=0x2;
+    rf[12]=0xa;
+    rf[13]=0xf;
     cout<< "Enter the program file name to run"<<endl;
     cout<<endl;
     loadFile("sample_part2.txt");
     int i = 0;
     while(instructions.size() > i) {
         fetch();
-        cout<<endl;
+        
         decode(currInstructions);
         execute();
         Mem();
         Writeback();
         
         if( MemWrite == 1 ){
-        
-            cout<<"memory x"<<intToHex(ctrl_sig) << " is modified to 0x"<<rf[rdG]<<endl;
+            
+            cout<<"memory 0x"<<intToHex(ctrl_sig) << " is modified to 0x"<< intToHex(D_mem[(ctrl_sig)/4])<<endl;
         }
         if(RegWrite==1){
-            cout<<"0x"<<rdG << " is modified to 0x"<< ctrl_sig<<endl;
+            cout<<"x"<<rdG << " is modified to 0x"<< intToHex(rf[rdG])<<endl;
         }
-            
-            
-        
-        cout<< "pc is modified to x"<< intToHex(PC)<<endl;
+      
+        cout<< "pc is modified to 0x"<< intToHex(PC)<<endl;
         cout<<endl;
         i++;
         
