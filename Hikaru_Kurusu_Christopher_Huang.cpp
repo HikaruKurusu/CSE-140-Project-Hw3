@@ -592,21 +592,21 @@ int Writeback(){
 } 
 int main() {
     //sample_part1.txt
-    rf[1]=0x20;
-    rf[2]=0x5;
-    rf[10]=0x70;
-    rf[11]=0x4;
-    D_mem[28]=0x5;
-    D_mem[29]=0x10;
+    // rf[1]=0x20;
+    // rf[2]=0x5;
+    // rf[10]=0x70;
+    // rf[11]=0x4;
+    // D_mem[28]=0x5;
+    // D_mem[29]=0x10;
     //sample_part2.txt 
-    // rf[8]=0x20;
-    // rf[10]=0x5;
-    // rf[11]=0x2;
-    // rf[12]=0xa;
-    // rf[13]=0xf;
+    rf[8]=0x20;
+    rf[10]=0x5;
+    rf[11]=0x2;
+    rf[12]=0xa;
+    rf[13]=0xf;
     cout<< "Enter the program file name to run"<<endl;
     cout<<endl;
-    loadFile("sample_part1.txt");
+    loadFile("sample_part2.txt");
     int i = 0;
     while(instructions.size() > i) {
         fetch();
