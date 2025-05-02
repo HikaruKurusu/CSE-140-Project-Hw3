@@ -3,6 +3,30 @@ using namespace std;
 #include <sstream>
 #include <fstream>
 #include <string>
+
+struct IF_ID {
+    string instruction;
+} if_id;
+
+struct ID_EX {
+    int rs1_val, rs2_val, imm, rd;
+    string alu_op;
+    string opcode;
+} id_ex;
+
+struct EX_MEM {
+    int alu_result, rs2_val, rd;
+    bool mem_read, mem_write;
+    bool reg_write;
+    bool mem_to_reg;
+} ex_mem;
+
+struct MEM_WB {
+    int mem_data, alu_result, rd;
+    bool reg_write;
+    bool mem_to_reg;
+} mem_wb;
+
 int PC = 0;
 
 int nextPC = 0;
@@ -19,9 +43,9 @@ int branch_target = 0;
 
 bool is_branch_taken = false;
 
-int rs1G = 0;
-int rs2G = 0;
-int rdG = 0;
+int id_ex.rs1_val = 0;
+int id_ex.rs2_val = 0;
+int id_ex.rd = 0;
 int ImmG = 0;
 
 int op1 = 0;
@@ -186,41 +210,41 @@ void decode(string instruction) {
             if (funct7 == "0000000") {
                 // cout << "Operation: add\n";
 
-                rs1G = getRs1(instruction);
-                rs2G = getRs2(instruction);
-                rdG = getRd(instruction);
-                op1 = rf[rs1G];
-                op2 = rf[rs2G];
+                id_ex.rs1_val = getRs1(instruction);
+                id_ex.rs2_val = getRs2(instruction);
+                id_ex.rd = getRd(instruction);
+                op1 = rf[id_ex.rs1_val];
+                op2 = rf[id_ex.rs2_val];
                 alu_ctrl = "0010";
                 
             } else if(funct7 == "0100000"){
                 // cout << "Operation: sub\n";
 
-                rs1G = getRs1(instruction);
-                rs2G = getRs2(instruction);
-                rdG = getRd(instruction);
-                op1 = rf[rs1G];
-                op2 = rf[rs2G];
+                id_ex.rs1_val = getRs1(instruction);
+                id_ex.rs2_val = getRs2(instruction);
+                id_ex.rd = getRd(instruction);
+                op1 = rf[id_ex.rs1_val];
+                op2 = rf[id_ex.rs2_val];
                 alu_ctrl = "0110";
             }
         } else if (funct3 == "111") {
             if(funct7 == "0000000") {
                 // cout << "Operation: and\n";
-                rs1G = getRs1(instruction);
-                rs2G = getRs2(instruction);
-                rdG = getRd(instruction);
-                op1 = rf[rs1G];
-                op2 = rf[rs2G];
+                id_ex.rs1_val = getRs1(instruction);
+                id_ex.rs2_val = getRs2(instruction);
+                id_ex.rd = getRd(instruction);
+                op1 = rf[id_ex.rs1_val];
+                op2 = rf[id_ex.rs2_val];
                 alu_ctrl = "0000";
             }
         } else if (funct3 == "110") {
             if(funct7 == "0000000") {
                 // cout << "Operation: or\n";
-                rs1G = getRs1(instruction);
-                rs2G = getRs2(instruction);
-                rdG = getRd(instruction);
-                op1 = rf[rs1G];
-                op2 = rf[rs2G];
+                id_ex.rs1_val = getRs1(instruction);
+                id_ex.rs2_val = getRs2(instruction);
+                id_ex.rd = getRd(instruction);
+                op1 = rf[id_ex.rs1_val];
+                op2 = rf[id_ex.rs2_val];
                 alu_ctrl = "0001";
             }
         } else if (funct3 == "001") {
@@ -257,10 +281,10 @@ void decode(string instruction) {
             // cout << "Operation: lb\n";
         } else if (funct3 == "010") {
             // cout << "Operation: lw\n";
-            rs1G = getRs1(instruction);
+            id_ex.rs1_val = getRs1(instruction);
             ImmG = todecimalForI((instruction));
-            rdG = getRd(instruction);
-            op1 = rf[rs1G];
+            id_ex.rd = getRd(instruction);
+            op1 = rf[id_ex.rs1_val];
             op2 = ImmG;
             alu_ctrl = "0010";
         } else if (funct3 == "001") {
@@ -273,26 +297,26 @@ void decode(string instruction) {
            
         } else if(funct3 == "000") {
             // cout << "Operation: addi\n";
-            rs1G = getRs1(instruction);
-            rdG = getRd(instruction);
+            id_ex.rs1_val = getRs1(instruction);
+            id_ex.rd = getRd(instruction);
             ImmG = todecimalForI((instruction));
-            op1 = rf[rs1G];
+            op1 = rf[id_ex.rs1_val];
             op2 = ImmG;
             alu_ctrl="0010";
         } else if(funct3 == "111") {
             // cout << "Operation: andi\n";
-           rs1G = getRs1(instruction);
-           rdG = getRd(instruction);
+           id_ex.rs1_val = getRs1(instruction);
+           id_ex.rd = getRd(instruction);
            ImmG = todecimalForI((instruction));
-           op1 = rf[rs1G];
+           op1 = rf[id_ex.rs1_val];
            op2 = ImmG;
            alu_ctrl="0000";
         } else if(funct3 == "110") {
             // cout << "Operation: ori\n";
-           rs1G = getRs1(instruction);
-           rdG = getRd(instruction);
+           id_ex.rs1_val = getRs1(instruction);
+           id_ex.rd = getRd(instruction);
            ImmG = todecimalForI((instruction));
-           op1 = rf[rs1G];
+           op1 = rf[id_ex.rs1_val];
            op2 = ImmG;
            alu_ctrl="0001";
         } else if(funct3 == "001") {
@@ -318,10 +342,10 @@ void decode(string instruction) {
         if(funct3 == "000") {
             // cout << "Operation: jalr\n";
 
-            rs1G = getRs1(instruction);
-            rdG = getRd(instruction);
+            id_ex.rs1_val = getRs1(instruction);
+            id_ex.rd = getRd(instruction);
             ImmG = todecimalForI((instruction));
-            op1 = rf[rs1G];
+            op1 = rf[id_ex.rs1_val];
             op2 = ImmG;
             alu_ctrl = "0010";
         }
@@ -335,10 +359,10 @@ void decode(string instruction) {
         } else if(funct3 == "010") {
             // cout << "Operation: sw\n";
 
-            rs1G = getRs1(instruction);
-            rs2G = getRs2(instruction);
+            id_ex.rs1_val = getRs1(instruction);
+            id_ex.rs2_val = getRs2(instruction);
             ImmG = getSTypeImm(instruction);
-            op1 = rf[rs1G];
+            op1 = rf[id_ex.rs1_val];
             op2 = ImmG;
             alu_ctrl = "0010";
         }
@@ -347,11 +371,11 @@ void decode(string instruction) {
         // cout << "Instruction Type: SB\n";
         if(funct3 == "000") {
             // cout << "Operation: beq\n";
-            rs1G = getRs1(instruction);
-            rs2G = getRs2(instruction);
+            id_ex.rs1_val = getRs1(instruction);
+            id_ex.rs2_val = getRs2(instruction);
             ImmG = getSBTypeImm(instruction);
-            op1 = rf[rs1G];
-            op2 = rf[rs2G];
+            op1 = rf[id_ex.rs1_val];
+            op2 = rf[id_ex.rs2_val];
             alu_ctrl = "0110";
         } else if(funct3 == "001") {
             // cout << "Operation: bne\n";
@@ -365,7 +389,7 @@ void decode(string instruction) {
         // cout << "Instruction Type: UJ\n";
         // cout << "Instruction: jal\n";
 
-        rdG = getRd(instruction);
+        id_ex.rd = getRd(instruction);
         ImmG = getUJTypeImm(instruction);
         op1 = PC;
         op2 = ImmG;
@@ -395,6 +419,7 @@ void fetch() {
     currInstructions = instructions[PC/4];
     PC+=4;
     nextPC = PC;
+    if_id.instruction = currInstructions;
 }
 
 void execute() {
@@ -551,36 +576,35 @@ void controlUnit() {
 
 }
 int Mem(){
-   
     int index =(ctrl_sig)/4;
-    if(  MemRead == 1 ){
+    if(ex_mem.mem_read == 1 ){
         recieved = D_mem[index];
 
-    }else if (MemWrite == 1){
-        D_mem[index]=  rf[rs2G];
+    }else if (ex_mem.mem_write == 1){
+        D_mem[index]=  rf[id_ex.rs2_val];
         
     }   
 }
 int Writeback(){
-    if(  RegWrite == 1 ){
+    if(mem_wb.reg_write == 1){
         
         if(MemRead == 1){
-            rf[rdG] = recieved;
+            rf[id_ex.rd] = recieved;
            
         }else{
             if(jal_sig == 1){
              
-                if(jalr_sig==1){
-                    PC = rf[rs1G]+ImmG;
+                if(jalr_sig == 1){
+                    PC = rf[id_ex.rs1_val]+ImmG;
                 }else{
                     
                     PC = PC + ImmG - 4 ;
                     
                 }
-                rf[rdG] = nextPC;
+                rf[id_ex.rd] = nextPC;
             }else{
                 
-                rf[rdG] = ctrl_sig;
+                rf[id_ex.rd] = ctrl_sig;
             }
             
         }
@@ -610,7 +634,6 @@ int main() {
     int i = 0;
     while(instructions.size() > i) {
         fetch();
-        
         decode(currInstructions);
         execute();
         Mem();
@@ -621,7 +644,7 @@ int main() {
             cout<<"memory 0x"<<intToHex(ctrl_sig) << " is modified to 0x"<< intToHex(D_mem[(ctrl_sig)/4])<<endl;
         }
         if(RegWrite==1){
-            cout<<"x"<<rdG << " is modified to 0x"<< intToHex(rf[rdG])<<endl;
+            cout<<"x"<<id_ex.rd << " is modified to 0x"<< intToHex(rf[id_ex.rd])<<endl;
         }
       
         cout<< "pc is modified to 0x"<< intToHex(PC)<<endl;
