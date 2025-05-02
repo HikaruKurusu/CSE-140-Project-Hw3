@@ -273,15 +273,15 @@ void decode(string instruction) {
            
         } else if(funct3 == "000") {
             // cout << "Operation: addi\n";
-            rs1G =getRs1(instruction);
+            rs1G = getRs1(instruction);
             rdG = getRd(instruction);
             ImmG = todecimalForI((instruction));
-            op1 =rf[rs1G];
+            op1 = rf[rs1G];
             op2 = ImmG;
             alu_ctrl="0010";
         } else if(funct3 == "111") {
             // cout << "Operation: andi\n";
-           rs1G =getRs1(instruction);
+           rs1G = getRs1(instruction);
            rdG = getRd(instruction);
            ImmG = todecimalForI((instruction));
            op1 = rf[rs1G];
@@ -289,11 +289,11 @@ void decode(string instruction) {
            alu_ctrl="0000";
         } else if(funct3 == "110") {
             // cout << "Operation: ori\n";
-           rs1G =getRs1(instruction);
+           rs1G = getRs1(instruction);
            rdG = getRd(instruction);
            ImmG = todecimalForI((instruction));
-           op1 =rf[rs1G];
-           op2 =ImmG;
+           op1 = rf[rs1G];
+           op2 = ImmG;
            alu_ctrl="0001";
         } else if(funct3 == "001") {
             if(funct7 == "0000000") {
