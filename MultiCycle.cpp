@@ -96,7 +96,7 @@ int aluSrc = 0;
 int AluOp = 0;
 int jal_sig = 0;
 int jalr_sig =0;
-
+bool stall = false;
 
 
 int recieved = 0;
@@ -464,7 +464,7 @@ void fetch() {
 }
 
 void execute() {
-    cout<< id_ex.aluSrc<<endl;
+   
     if(id_ex.aluSrc == 0){
         op2 = rf[id_ex.rs2_val];
 
@@ -756,33 +756,43 @@ int main() {
             mem_wb.mem_bool = true;
             ex_mem.exe_bool = false;
         }
+        
         if(id_ex.decode_bool == true){
-            
-            execute();
-            cout<< "EXE: " << id_ex.instruction  <<endl;
-            cout<< "pc is modified to 0x"<< intToHex(id_ex.PC)<<endl;
-            cout<<endl;
-            ex_mem.exe_bool= true;
-            id_ex.decode_bool = false;
-            
-        }
-        if(if_id.fetch_bool == true){
-            
-            decode(if_id.instruction);
-            cout<< "ID: " << if_id.instruction  <<endl;
-            cout<< "pc is modified to 0x"<< intToHex(if_id.PC)<<endl;
-            cout<<endl;
-            id_ex.decode_bool = true;
-            if_id.fetch_bool =false;
-        }
-        if(if_id.PC/4 < instructions.size()){
+            if((mem_wb.mem_bool && (id_ex.rs1_val == mem_wb.rd || id_ex.rs2_val == mem_wb.rd)) || (ex_mem.exe_bool && (id_ex.rs1_val == ex_mem.rd || id_ex.rs2_val == ex_mem.rd))) {
+                stall = true;
+                continue;
+            }else{
+                execute();
+                cout<< "EXE: " << id_ex.instruction  <<endl;
+                cout<< "pc is modified to 0x"<< intToHex(id_ex.PC)<<endl;
+                cout<<endl;
+                ex_mem.exe_bool= true;
+                id_ex.decode_bool = false;
+                stall =false;
+            }
            
-            fetch();
-            cout<< "IF: " << if_id.instruction  <<endl;
-            cout<< "pc is modified to 0x"<< intToHex(if_id.PC)<<endl;
-            cout<<endl;
-            if_id.fetch_bool = true;
             
+        }
+
+        if(stall == false){
+            if(if_id.fetch_bool == true){
+            
+                decode(if_id.instruction);
+                cout<< "ID: " << if_id.instruction  <<endl;
+                cout<< "pc is modified to 0x"<< intToHex(if_id.PC)<<endl;
+                cout<<endl;
+                id_ex.decode_bool = true;
+                if_id.fetch_bool =false;
+            }
+            if(if_id.PC/4 < instructions.size()){
+               
+                fetch();
+                cout<< "IF: " << if_id.instruction  <<endl;
+                cout<< "pc is modified to 0x"<< intToHex(if_id.PC)<<endl;
+                cout<<endl;
+                if_id.fetch_bool = true;
+                
+            }
         }
 
         
