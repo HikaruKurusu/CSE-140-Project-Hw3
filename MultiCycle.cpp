@@ -5,25 +5,30 @@ using namespace std;
 #include <string>
 
 struct IF_ID {
+    bool fetch_bool = false;
     string instruction;
 } if_id;
 
 struct ID_EX {
+    bool decode_bool = false;
     int rs1_val, rs2_val, imm, rd;
     string alu_op;
     string opcode;
 } id_ex;
 
 struct EX_MEM {
+    bool exe_bool = false;
     int alu_result, rs2_val, rd;
-    bool mem_read, mem_write;
-    bool reg_write;
+    int mem_read, mem_write;
+    int reg_write;
     bool mem_to_reg;
 } ex_mem;
 
 struct MEM_WB {
+    bool mem_bool = false;
+    
     int mem_data, alu_result, rd;
-    bool reg_write;
+    int reg_write;
     bool mem_to_reg;
 } mem_wb;
 
@@ -43,9 +48,7 @@ int branch_target = 0;
 
 bool is_branch_taken = false;
 
-int id_ex.rs1_val = 0;
-int id_ex.rs2_val = 0;
-int id_ex.rd = 0;
+
 int ImmG = 0;
 
 int op1 = 0;
@@ -60,12 +63,12 @@ string opcodeG;
 string Funct7;
 string Funct3;
 
-int RegWrite = 0;
+// int ex_mem.reg_write = 0;
 int branch = 0;
 int aluSrc = 0;
-int MemWrite = 0;
-int MemToReg = 0;
-int MemRead = 0;
+// int ex_mem.mem_write = 0;
+// int ex_mem.mem_to_reg = 0;
+// int ex_mem.mem_read = 0;
 int AluOp = 0;
 int jal_sig = 0;
 int jalr_sig =0;
@@ -420,6 +423,7 @@ void fetch() {
     PC+=4;
     nextPC = PC;
     if_id.instruction = currInstructions;
+    
 }
 
 void execute() {
@@ -443,74 +447,74 @@ void execute() {
 }
 void controlUnit() {
     if(opcodeG == "0110011") { // type R
-        RegWrite = 1;
+        ex_mem.reg_write = 1;
         branch = 0;
         aluSrc = 0;
-        MemWrite = 0;
-        MemToReg = 0;
-        MemRead = 0;
+        ex_mem.mem_write = 0;
+        ex_mem.mem_to_reg = 0;
+        ex_mem.mem_read = 0;
         AluOp = 2; 
         jal_sig = 0;
         jalr_sig = 0;
     } else if(opcodeG == "0000011") { // lw
-        RegWrite = 1;
+        ex_mem.reg_write = 1;
         branch = 0;
         aluSrc = 1;
-        MemWrite = 0;
-        MemToReg = 1;
-        MemRead = 1;
+        ex_mem.mem_write = 0;
+        ex_mem.mem_to_reg = 1;
+        ex_mem.mem_read = 1;
         AluOp = 0;
         jal_sig = 0;
         jalr_sig = 0;
     } else if(opcodeG == "0100011") { // sw
-        RegWrite = 0;
+        ex_mem.reg_write = 0;
         branch = 0;
         aluSrc = 1;
-        MemWrite = 1;
-        MemToReg = 0;
-        MemRead = 0;
+        ex_mem.mem_write = 1;
+        ex_mem.mem_to_reg = 0;
+        ex_mem.mem_read = 0;
         AluOp = 0;
         jal_sig = 0;
         jalr_sig = 0;
     } else if(opcodeG == "1100111") { // jalr
-        RegWrite = 1;
+        ex_mem.reg_write = 1;
         branch = 0;
         aluSrc = 1;
-        MemWrite = 0;
-        MemToReg = 0;
-        MemRead = 0;
+        ex_mem.mem_write = 0;
+        ex_mem.mem_to_reg = 0;
+        ex_mem.mem_read = 0;
         AluOp = 0;
         jal_sig = 1;
         jalr_sig =1;
         
 
     } else if(opcodeG == "1101111") { // jal
-        RegWrite = 1;
+        ex_mem.reg_write = 1;
         branch = 0;
         aluSrc = 0;
-        MemWrite = 0;
-        MemToReg = 0;
-        MemRead = 0;
+        ex_mem.mem_write = 0;
+        ex_mem.mem_to_reg = 0;
+        ex_mem.mem_read = 0;
         AluOp = 0;
         jal_sig = 1;
         jalr_sig = 0;
     }else if(opcodeG == "0010011"){//I type
-        RegWrite = 1;
+        ex_mem.reg_write = 1;
         branch = 0;
         aluSrc = 1;
-        MemWrite = 0;
-        MemToReg = 0;
-        MemRead = 0;
+        ex_mem.mem_write = 0;
+        ex_mem.mem_to_reg = 0;
+        ex_mem.mem_read = 0;
         AluOp = 0;
         jal_sig = 0;
         jalr_sig = 0;
     }else if(opcodeG == "1100011"){//beq
-        RegWrite = 0;
+        ex_mem.reg_write = 0;
         branch = 1;
         aluSrc = 0;
-        MemWrite = 0;
-        MemToReg = 0;
-        MemRead = 0;
+        ex_mem.mem_write = 0;
+        ex_mem.mem_to_reg = 0;
+        ex_mem.mem_read = 0;
         AluOp = 0;
         jal_sig = 0;
         jalr_sig = 0;
@@ -586,11 +590,12 @@ int Mem(){
     }   
 }
 int Writeback(){
-    if(mem_wb.reg_write == 1){
+    
+    if(ex_mem.reg_write == 1){
         
-        if(MemRead == 1){
+        if(ex_mem.mem_read == 1){
             rf[id_ex.rd] = recieved;
-           
+          
         }else{
             if(jal_sig == 1){
              
@@ -611,8 +616,6 @@ int Writeback(){
     }
     
   
-    total_clock_cycles++;
-    cout<<"total_clock_cycles "<< total_clock_cycles<<" :" <<endl;
 } 
 int main() {
     //sample_part1.txt
@@ -632,23 +635,100 @@ int main() {
     cout<<endl;
     loadFile("sample_part1.txt");
     int i = 0;
-    while(instructions.size() > i) {
-        fetch();
-        decode(currInstructions);
-        execute();
-        Mem();
-        Writeback();
-        
-        if( MemWrite == 1 ){
+    while(if_id.fetch_bool || id_ex.decode_bool || ex_mem.exe_bool || mem_wb.mem_bool || mem_wb.mem_bool || PC/4 < instructions.size()) {
+        // fetch();
+        // decode(currInstructions);
+        // execute();
+        // Mem();
+        // Writeback();
+       
+        total_clock_cycles++;
+        cout<<"total_clock_cycles "<< total_clock_cycles<<" :" <<endl;
+        if(if_id.fetch_bool == true){
+            if_id.fetch_bool = false;
             
-            cout<<"memory 0x"<<intToHex(ctrl_sig) << " is modified to 0x"<< intToHex(D_mem[(ctrl_sig)/4])<<endl;
+        }else{
+            fetch();
+            cout<< "IF: " << if_id.instruction  <<endl;
+            cout<< "pc is modified to 0x"<< intToHex(PC)<<endl;
+            if_id.fetch_bool = true;
+            
         }
-        if(RegWrite==1){
-            cout<<"x"<<id_ex.rd << " is modified to 0x"<< intToHex(rf[id_ex.rd])<<endl;
+        if(id_ex.decode_bool == true){
+            id_ex.decode_bool = false;
+            
+        }else{
+            decode(if_id.instruction);
+            cout<< "ID: " << if_id.instruction  <<endl;
+            cout<< "pc is modified to 0x"<< intToHex(PC)<<endl;
+            id_ex.decode_bool = true;
         }
-      
-        cout<< "pc is modified to 0x"<< intToHex(PC)<<endl;
-        cout<<endl;
+        if(ex_mem.exe_bool == true){
+            ex_mem.exe_bool = false;
+            
+        }else{
+            execute();
+            cout<< "EXE: " << if_id.instruction  <<endl;
+            cout<< "pc is modified to 0x"<< intToHex(PC)<<endl;
+            ex_mem.exe_bool = true;
+        }
+        
+        if(mem_wb.mem_bool == true){
+            mem_wb.mem_bool  = false;
+            
+        }else{
+            Writeback();
+            mem_wb.mem_bool = true;
+            cout<< "WB: " << if_id.instruction  <<endl;
+            if( ex_mem.mem_write == 1 ){
+            
+                cout<<"memory 0x"<<intToHex(ctrl_sig) << " is modified to 0x"<< intToHex(D_mem[(ctrl_sig)/4])<<endl;
+            }
+            if(ex_mem.reg_write==1){
+                cout<<"x"<<id_ex.rd << " is modified to 0x"<< intToHex(rf[id_ex.rd])<<endl;
+            }
+          
+            cout<< "pc is modified to 0x"<< intToHex(PC)<<endl;
+            cout<<endl;
+            
+        }
+        
+        if(ex_mem.exe_bool == true){
+            ex_mem.exe_bool  = false;
+            
+        }else{
+            Mem();
+            cout<< "MEM: " << if_id.instruction  <<endl;
+            cout<< "pc is modified to 0x"<< intToHex(PC)<<endl;
+            ex_mem.exe_bool = true;
+        }
+        if(id_ex.decode_bool == true){
+            id_ex.decode_bool = false;
+            
+        }else{
+            execute();
+            cout<< "EXE: " << if_id.instruction  <<endl;
+            cout<< "pc is modified to 0x"<< intToHex(PC)<<endl;
+            id_ex.decode_bool= true;
+        }
+        if(if_id.fetch_bool == true){
+            if_id.fetch_bool = false;
+            
+        }else{
+            decode(if_id.instruction);
+            cout<< "ID: " << if_id.instruction  <<endl;
+            cout<< "pc is modified to 0x"<< intToHex(PC)<<endl;
+            if_id.fetch_bool = true;
+        }
+        if(PC/4 < instructions.size()){
+           
+            fetch();
+            cout<< "IF: " << if_id.instruction  <<endl;
+            cout<< "pc is modified to 0x"<< intToHex(PC)<<endl;
+          
+            
+        }
+
         i++;
         
     }
