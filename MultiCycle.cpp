@@ -69,7 +69,7 @@ vector<int> D_mem(32,0);
 string currInstructions;
 
 int branch_target = 0;
-
+int alu_result = 0;
 bool is_branch_taken = false;
 int rs1G = 0;
 int rs2G = 0;
@@ -311,6 +311,7 @@ void decode(string instruction) {
             // cout << "Operation: lw\n";
             id_ex.rs1_val = getRs1(instruction);
             id_ex.imm = todecimalForI((instruction));
+            
             id_ex.rd = getRd(instruction);
             op1 = rf[id_ex.rs1_val];
             op2 = id_ex.imm;
@@ -429,12 +430,12 @@ void decode(string instruction) {
     
     controlUnit();
     id_ex.instruction = if_id.instruction;
-    id_ex.rs1_val =  rs1G;
-    id_ex.rs2_val =  rs2G;
-    id_ex.imm =  ImmG;
+    
+    id_ex.alu_ctrl = alu_ctrl;
+    
     id_ex.Funct3 =  Funct3;
     id_ex.Funct7 =  Funct7;
-    id_ex.rd =  rdG;
+  
     id_ex.opcode =  opcodeG;
     id_ex.PC= if_id.PC;
     id_ex.nextPC= if_id.nextPC;
@@ -463,29 +464,32 @@ void fetch() {
 }
 
 void execute() {
-    if(aluSrc == 0){
+    cout<< id_ex.aluSrc<<endl;
+    if(id_ex.aluSrc == 0){
         op2 = rf[id_ex.rs2_val];
 
-    }else if (aluSrc == 1){
+    }else if (id_ex.aluSrc == 1){
         op2 = id_ex.imm;
     }
     op1 = rf[id_ex.rs1_val];
-    if(alu_ctrl == "0010") {//lw add sw
+   
+    if(id_ex.alu_ctrl == "0010") {//lw add sw
         ex_mem.alu_result = op1 + op2;
+       //cout << ex_mem.alu_result<<" "<< op2<< " " << op1<<endl;
        
-    } else if(alu_ctrl == "0110") {//sub beq
+    } else if(id_ex.alu_ctrl == "0110") {//sub beq
         ex_mem.alu_result = op1 - op2;
         
-    }else if (alu_ctrl == "0000") {//and
+    }else if (id_ex.alu_ctrl == "0000") {//and
         ex_mem.alu_result = op1 & op2;
-    }   else if (alu_ctrl == "0001") {//or
+    }   else if (id_ex.alu_ctrl == "0001") {//or
         ex_mem.alu_result = op1 | op2;
     }     
     if( ex_mem.alu_result == 0) {
         ex_mem.alu_zero = 1;
         ex_mem.branch_target = id_ex.PC + id_ex.imm;
     } else {
-        alu_zero = 0;
+        ex_mem.alu_zero = 0;
     }
     ex_mem.instruction = id_ex.instruction;
     ex_mem.instruction = id_ex.instruction;
@@ -645,12 +649,12 @@ void controlUnit() {
 }
 int Mem(){
 
-    int index =( mem_wb.alu_result)/4;
-    if(mem_wb.mem_read == 1 ){
+    int index =( ex_mem.alu_result)/4;
+    if(ex_mem.mem_read == 1 ){
         recieved = D_mem[index];
 
     }else if (ex_mem.mem_write == 1){
-        D_mem[index]=  rf[mem_wb.rs2_val];
+        D_mem[index]=  rf[ex_mem.rs2_val];
         
     } 
     mem_wb.instruction = ex_mem.instruction;
@@ -663,7 +667,8 @@ int Mem(){
     mem_wb.rd = ex_mem.rd;
     mem_wb.alu_zero = ex_mem.alu_zero;
     mem_wb.branch_target = ex_mem.branch_target;
-   
+    mem_wb.mem_read = ex_mem.mem_read;
+    mem_wb.jal_sig = ex_mem.jal_sig;
 
 }
 int Writeback(){
