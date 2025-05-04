@@ -7,29 +7,53 @@ using namespace std;
 struct IF_ID {
     bool fetch_bool = false;
     string instruction;
+    int PC;
+    int nextPC;
 } if_id;
 
 struct ID_EX {
+    string instruction;
     bool decode_bool = false;
+    string Funct3,Funct7;
     int rs1_val, rs2_val, imm, rd;
-    string alu_op;
+    int AluOp;
+    string alu_ctrl;
     string opcode;
+    int PC;
+    int nextPC;
+    int reg_write, branch,aluSrc,mem_write, mem_to_reg,mem_read,jal_sig,jalr_sig;
 } id_ex;
 
 struct EX_MEM {
+    string instruction;
     bool exe_bool = false;
-    int alu_result, rs2_val, rd;
-    int mem_read, mem_write;
-    int reg_write;
-    bool mem_to_reg;
+    string Funct3,Funct7;
+    int alu_result,rs1_val, rs2_val,imm ,rd;
+    int AluOp;
+    string alu_ctrl;
+    string opcode;
+    int PC;
+    int nextPC;
+    int alu_zero;
+    int branch_target;
+    int reg_write, branch,aluSrc,mem_write, mem_to_reg,mem_read,jal_sig,jalr_sig;
 } ex_mem;
 
 struct MEM_WB {
+    string instruction;
     bool mem_bool = false;
+    string Funct3,Funct7;
+    int alu_result,rs1_val, rs2_val,imm ,rd;
+    int AluOp;
+    string alu_ctrl;
+    string opcode;
+    int PC;
+    int nextPC;
+    int alu_zero;
+    int branch_target;
+    int reg_write, branch,aluSrc,mem_write, mem_to_reg,mem_read,jal_sig,jalr_sig;
+    int recieved;
     
-    int mem_data, alu_result, rd;
-    int reg_write;
-    bool mem_to_reg;
 } mem_wb;
 
 int PC = 0;
@@ -47,10 +71,10 @@ string currInstructions;
 int branch_target = 0;
 
 bool is_branch_taken = false;
-
-
-int ImmG = 0;
-
+int rs1G = 0;
+int rs2G = 0;
+int rdG = 0;
+int ImmG =0;
 int op1 = 0;
 int op2 = 0;
 
@@ -63,7 +87,7 @@ string opcodeG;
 string Funct7;
 string Funct3;
 
-// int ex_mem.reg_write = 0;
+int reg_write = 0;
 int branch = 0;
 int aluSrc = 0;
 // int ex_mem.mem_write = 0;
@@ -237,6 +261,7 @@ void decode(string instruction) {
                 id_ex.rs2_val = getRs2(instruction);
                 id_ex.rd = getRd(instruction);
                 op1 = rf[id_ex.rs1_val];
+              
                 op2 = rf[id_ex.rs2_val];
                 alu_ctrl = "0000";
             }
@@ -285,10 +310,10 @@ void decode(string instruction) {
         } else if (funct3 == "010") {
             // cout << "Operation: lw\n";
             id_ex.rs1_val = getRs1(instruction);
-            ImmG = todecimalForI((instruction));
+            id_ex.imm = todecimalForI((instruction));
             id_ex.rd = getRd(instruction);
             op1 = rf[id_ex.rs1_val];
-            op2 = ImmG;
+            op2 = id_ex.imm;
             alu_ctrl = "0010";
         } else if (funct3 == "001") {
             // cout << "Operation: lh\n";
@@ -302,25 +327,25 @@ void decode(string instruction) {
             // cout << "Operation: addi\n";
             id_ex.rs1_val = getRs1(instruction);
             id_ex.rd = getRd(instruction);
-            ImmG = todecimalForI((instruction));
+            id_ex.imm = todecimalForI((instruction));
             op1 = rf[id_ex.rs1_val];
-            op2 = ImmG;
+            op2 = id_ex.imm;
             alu_ctrl="0010";
         } else if(funct3 == "111") {
             // cout << "Operation: andi\n";
            id_ex.rs1_val = getRs1(instruction);
            id_ex.rd = getRd(instruction);
-           ImmG = todecimalForI((instruction));
+           id_ex.imm = todecimalForI((instruction));
            op1 = rf[id_ex.rs1_val];
-           op2 = ImmG;
+           op2 = id_ex.imm;
            alu_ctrl="0000";
         } else if(funct3 == "110") {
             // cout << "Operation: ori\n";
            id_ex.rs1_val = getRs1(instruction);
            id_ex.rd = getRd(instruction);
-           ImmG = todecimalForI((instruction));
+           id_ex.imm = todecimalForI((instruction));
            op1 = rf[id_ex.rs1_val];
-           op2 = ImmG;
+           op2 = id_ex.imm;
            alu_ctrl="0001";
         } else if(funct3 == "001") {
             if(funct7 == "0000000") {
@@ -347,9 +372,9 @@ void decode(string instruction) {
 
             id_ex.rs1_val = getRs1(instruction);
             id_ex.rd = getRd(instruction);
-            ImmG = todecimalForI((instruction));
+            id_ex.imm = todecimalForI((instruction));
             op1 = rf[id_ex.rs1_val];
-            op2 = ImmG;
+            op2 = id_ex.imm;
             alu_ctrl = "0010";
         }
 
@@ -364,9 +389,9 @@ void decode(string instruction) {
 
             id_ex.rs1_val = getRs1(instruction);
             id_ex.rs2_val = getRs2(instruction);
-            ImmG = getSTypeImm(instruction);
+            id_ex.imm = getSTypeImm(instruction);
             op1 = rf[id_ex.rs1_val];
-            op2 = ImmG;
+            op2 = id_ex.imm;
             alu_ctrl = "0010";
         }
     }
@@ -376,7 +401,7 @@ void decode(string instruction) {
             // cout << "Operation: beq\n";
             id_ex.rs1_val = getRs1(instruction);
             id_ex.rs2_val = getRs2(instruction);
-            ImmG = getSBTypeImm(instruction);
+            id_ex.imm = getSBTypeImm(instruction);
             op1 = rf[id_ex.rs1_val];
             op2 = rf[id_ex.rs2_val];
             alu_ctrl = "0110";
@@ -393,15 +418,26 @@ void decode(string instruction) {
         // cout << "Instruction: jal\n";
 
         id_ex.rd = getRd(instruction);
-        ImmG = getUJTypeImm(instruction);
+        id_ex.imm = getUJTypeImm(instruction);
         op1 = PC;
-        op2 = ImmG;
+        op2 = id_ex.imm;
         alu_ctrl = "0010";
     }
     else {
         cout << "not valid\n";
     }
+    
     controlUnit();
+    id_ex.instruction = if_id.instruction;
+    id_ex.rs1_val =  rs1G;
+    id_ex.rs2_val =  rs2G;
+    id_ex.imm =  ImmG;
+    id_ex.Funct3 =  Funct3;
+    id_ex.Funct7 =  Funct7;
+    id_ex.rd =  rdG;
+    id_ex.opcode =  opcodeG;
+    id_ex.PC= if_id.PC;
+    id_ex.nextPC= if_id.nextPC;
 }
 
 // Load all instructions from the file (do this once)
@@ -419,197 +455,238 @@ void loadFile(const string& filename) {
     file.close();
 }
 void fetch() {
-    currInstructions = instructions[PC/4];
-    PC+=4;
-    nextPC = PC;
+    currInstructions = instructions[if_id.PC/4];
+    if_id.PC+=4;
+    if_id.nextPC = if_id.PC;
     if_id.instruction = currInstructions;
-    
+     
 }
 
 void execute() {
+    if(aluSrc == 0){
+        op2 = rf[id_ex.rs2_val];
+
+    }else if (aluSrc == 1){
+        op2 = id_ex.imm;
+    }
+    op1 = rf[id_ex.rs1_val];
     if(alu_ctrl == "0010") {//lw add sw
-        ctrl_sig = op1 + op2;
+        ex_mem.alu_result = op1 + op2;
        
     } else if(alu_ctrl == "0110") {//sub beq
-        ctrl_sig = op1 - op2;
+        ex_mem.alu_result = op1 - op2;
         
     }else if (alu_ctrl == "0000") {//and
-        ctrl_sig = op1 & op2;
+        ex_mem.alu_result = op1 & op2;
     }   else if (alu_ctrl == "0001") {//or
-        ctrl_sig = op1 | op2;
+        ex_mem.alu_result = op1 | op2;
     }     
-    if(ctrl_sig == 0) {
-        alu_zero = 1;
-        branch_target = PC + ImmG;
+    if( ex_mem.alu_result == 0) {
+        ex_mem.alu_zero = 1;
+        ex_mem.branch_target = id_ex.PC + id_ex.imm;
     } else {
         alu_zero = 0;
     }
+    ex_mem.instruction = id_ex.instruction;
+    ex_mem.instruction = id_ex.instruction;
+    ex_mem.rs1_val =  id_ex.rs1_val;
+    ex_mem.rs2_val =  id_ex.rs2_val;
+    ex_mem.imm =  id_ex.imm;
+    ex_mem.Funct3 =  id_ex.Funct3;
+    ex_mem.Funct7 =  id_ex.Funct7;
+    ex_mem.rd =  id_ex.rd;
+    ex_mem.AluOp =  id_ex.AluOp;
+    ex_mem.opcode =  id_ex.opcode;
+    ex_mem.alu_ctrl =  id_ex.alu_ctrl;
+    ex_mem.reg_write =  id_ex.reg_write;
+    ex_mem.branch =  id_ex.branch;
+    ex_mem.aluSrc =  id_ex.aluSrc;
+    ex_mem.mem_write =  id_ex.mem_write;
+    ex_mem.mem_to_reg =  id_ex.mem_to_reg;
+    ex_mem.mem_read =  id_ex.mem_read;
+    ex_mem.jal_sig =  id_ex.jal_sig;
+    ex_mem.jalr_sig =  id_ex.jalr_sig;
+    ex_mem.PC= id_ex.PC;
+    ex_mem.nextPC= id_ex.nextPC;
 }
 void controlUnit() {
     if(opcodeG == "0110011") { // type R
-        ex_mem.reg_write = 1;
-        branch = 0;
-        aluSrc = 0;
-        ex_mem.mem_write = 0;
-        ex_mem.mem_to_reg = 0;
-        ex_mem.mem_read = 0;
-        AluOp = 2; 
-        jal_sig = 0;
-        jalr_sig = 0;
+        id_ex.reg_write = 1;
+        id_ex.branch = 0;
+        id_ex.aluSrc = 0;
+        id_ex.mem_write = 0;
+        id_ex.mem_to_reg = 0;
+        id_ex.mem_read = 0;
+        id_ex.AluOp = 2; 
+        id_ex.jal_sig = 0;
+        id_ex.jalr_sig = 0;
     } else if(opcodeG == "0000011") { // lw
-        ex_mem.reg_write = 1;
-        branch = 0;
-        aluSrc = 1;
-        ex_mem.mem_write = 0;
-        ex_mem.mem_to_reg = 1;
-        ex_mem.mem_read = 1;
-        AluOp = 0;
-        jal_sig = 0;
-        jalr_sig = 0;
+        id_ex.reg_write = 1;
+        id_ex.branch = 0;
+        id_ex.aluSrc = 1;
+        id_ex.mem_write = 0;
+        id_ex.mem_to_reg = 1;
+        id_ex.mem_read = 1;
+        id_ex.AluOp = 0;
+        id_ex.jal_sig = 0;
+        id_ex.jalr_sig = 0;
     } else if(opcodeG == "0100011") { // sw
-        ex_mem.reg_write = 0;
-        branch = 0;
-        aluSrc = 1;
-        ex_mem.mem_write = 1;
-        ex_mem.mem_to_reg = 0;
-        ex_mem.mem_read = 0;
-        AluOp = 0;
-        jal_sig = 0;
-        jalr_sig = 0;
+        id_ex.reg_write = 0;
+        id_ex.branch = 0;
+        id_ex.aluSrc = 1;
+        id_ex.mem_write = 1;
+        id_ex.mem_to_reg = 0;
+        id_ex.mem_read = 0;
+        id_ex.AluOp = 0;
+        id_ex.jal_sig = 0;
+        id_ex.jalr_sig = 0;
     } else if(opcodeG == "1100111") { // jalr
-        ex_mem.reg_write = 1;
-        branch = 0;
-        aluSrc = 1;
-        ex_mem.mem_write = 0;
-        ex_mem.mem_to_reg = 0;
-        ex_mem.mem_read = 0;
-        AluOp = 0;
-        jal_sig = 1;
-        jalr_sig =1;
+        id_ex.reg_write = 1;
+        id_ex.branch = 0;
+        id_ex.aluSrc = 1;
+        id_ex.mem_write = 0;
+        id_ex.mem_to_reg = 0;
+        id_ex.mem_read = 0;
+        id_ex.AluOp = 0;
+        id_ex.jal_sig = 1;
+        id_ex.jalr_sig =1;
         
 
     } else if(opcodeG == "1101111") { // jal
-        ex_mem.reg_write = 1;
-        branch = 0;
-        aluSrc = 0;
-        ex_mem.mem_write = 0;
-        ex_mem.mem_to_reg = 0;
-        ex_mem.mem_read = 0;
-        AluOp = 0;
-        jal_sig = 1;
-        jalr_sig = 0;
+        id_ex.reg_write = 1;
+        id_ex.branch = 0;
+        id_ex.aluSrc = 0;
+        id_ex.mem_write = 0;
+        id_ex.mem_to_reg = 0;
+        id_ex.mem_read = 0;
+        id_ex.AluOp = 0;
+        id_ex.jal_sig = 1;
+        id_ex.jalr_sig = 0;
     }else if(opcodeG == "0010011"){//I type
-        ex_mem.reg_write = 1;
-        branch = 0;
-        aluSrc = 1;
-        ex_mem.mem_write = 0;
-        ex_mem.mem_to_reg = 0;
-        ex_mem.mem_read = 0;
-        AluOp = 0;
-        jal_sig = 0;
-        jalr_sig = 0;
+        id_ex.reg_write = 1;
+        id_ex.branch = 0;
+        id_ex.aluSrc = 1;
+        id_ex.mem_write = 0;
+        id_ex.mem_to_reg = 0;
+        id_ex.mem_read = 0;
+        id_ex.AluOp = 0;
+        id_ex.jal_sig = 0;
+        id_ex.jalr_sig = 0;
     }else if(opcodeG == "1100011"){//beq
-        ex_mem.reg_write = 0;
-        branch = 1;
-        aluSrc = 0;
-        ex_mem.mem_write = 0;
-        ex_mem.mem_to_reg = 0;
-        ex_mem.mem_read = 0;
-        AluOp = 0;
-        jal_sig = 0;
-        jalr_sig = 0;
+        id_ex.reg_write = 0;
+        id_ex.branch = 1;
+        id_ex.aluSrc = 0;
+        id_ex.mem_write = 0;
+        id_ex.mem_to_reg = 0;
+        id_ex.mem_read = 0;
+        id_ex.AluOp = 0;
+        id_ex.jal_sig = 0;
+        id_ex.jalr_sig = 0;
     }
     //ALU COntrol RIGHT HERE
-    if(AluOp == 0) {
-        alu_ctrl = "0010";
-    } else if(AluOp == 1) {
-        alu_ctrl = "0110";
-    } else if(AluOp == 2) {
-        if(Funct3 == "000") {
-            if(Funct7.substr(1, 1) == "0") {
-                alu_ctrl = "0010";
+    if(id_ex.AluOp == 0) {
+        id_ex.alu_ctrl = "0010";
+    } else if(id_ex.AluOp == 1) {
+        id_ex.alu_ctrl = "0110";
+    } else if(id_ex.AluOp == 2) {
+        if(id_ex.Funct3 == "000") {
+            if(id_ex.Funct7.substr(1, 1) == "0") {
+                id_ex.alu_ctrl = "0010";
             } else {
-                alu_ctrl = "0110";
+                id_ex.alu_ctrl = "0110";
             }
-        } else if(Funct3 == "001") {
-            alu_ctrl = "1001";
-        } else if(Funct3 == "010") {
-            alu_ctrl = "0111";
-        } else if(Funct3 == "100") {
-            alu_ctrl = "0100";
-        } else if(Funct3 == "011") {
-            alu_ctrl = "1111";
-        } else if(Funct3 == "101") {
-            if(Funct7.substr(1, 1) == "0") {
-                alu_ctrl = "1010";
+        } else if(id_ex.Funct3 == "001") {
+            id_ex.alu_ctrl = "1001";
+        } else if(id_ex.Funct3 == "010") {
+            id_ex.alu_ctrl = "0111";
+        } else if(id_ex.Funct3 == "100") {
+            id_ex.alu_ctrl = "0100";
+        } else if(id_ex.Funct3 == "011") {
+            id_ex.alu_ctrl = "1111";
+        } else if(id_ex.Funct3 == "101") {
+            if(id_ex.Funct7.substr(1, 1) == "0") {
+                id_ex.alu_ctrl = "1010";
             } else {
-                alu_ctrl = "1011";
+                id_ex.alu_ctrl = "1011";
             }
-        } else if(Funct3 == "110") {
-            alu_ctrl = "0001";
-        } else if(Funct3 == "111") {
-            alu_ctrl = "0000";
+        } else if(id_ex.Funct3 == "110") {
+            id_ex.alu_ctrl = "0001";
+        } else if(id_ex.Funct3 == "111") {
+            id_ex.alu_ctrl = "0000";
         }
-    } else if(AluOp == 3) {
-        if(Funct3 == "000") {
-            if(Funct7.substr(1, 1) == "0") {
-                alu_ctrl = "0010";
+    } else if(id_ex.AluOp == 3) {
+        if(id_ex.Funct3 == "000") {
+            if(id_ex.Funct7.substr(1, 1) == "0") {
+                id_ex.alu_ctrl = "0010";
             } else {
-                alu_ctrl = "0110";
+                id_ex.alu_ctrl = "0110";
             }
-        } else if(Funct3 == "001") {
-            alu_ctrl = "1001";
-        } else if(Funct3 == "010") {
-            alu_ctrl = "0111";
+        } else if(id_ex.Funct3 == "001") {
+            id_ex.alu_ctrl = "1001";
+        } else if(id_ex.Funct3 == "010") {
+            id_ex.alu_ctrl = "0111";
         } else if(Funct3 == "100") {
-            alu_ctrl = "0100";
+            id_ex.alu_ctrl = "0100";
         } else if(Funct3 == "011") {
-            alu_ctrl = "1111";
-        } else if(Funct3 == "101") {
-            if(Funct7.substr(1, 1) == "0") {
-                alu_ctrl = "1010";
+            id_ex.alu_ctrl = "1111";
+        } else if(id_ex.Funct3 == "101") {
+            if(id_ex.Funct7.substr(1, 1) == "0") {
+                id_ex.alu_ctrl = "1010";
             } else {
-                alu_ctrl = "1011";
+                id_ex.alu_ctrl = "1011";
             }
-        } else if(Funct3 == "110") {
-            alu_ctrl = "0001";
+        } else if(id_ex.Funct3 == "110") {
+            id_ex.alu_ctrl = "0001";
         } else if(Funct3 == "111") {
-            alu_ctrl = "0000";
+            id_ex.alu_ctrl = "0000";
         }
     }
 
 }
 int Mem(){
-    int index =(ctrl_sig)/4;
-    if(ex_mem.mem_read == 1 ){
+
+    int index =( mem_wb.alu_result)/4;
+    if(mem_wb.mem_read == 1 ){
         recieved = D_mem[index];
 
     }else if (ex_mem.mem_write == 1){
-        D_mem[index]=  rf[id_ex.rs2_val];
+        D_mem[index]=  rf[mem_wb.rs2_val];
         
-    }   
+    } 
+    mem_wb.instruction = ex_mem.instruction;
+    mem_wb.recieved = recieved;
+    mem_wb.PC = ex_mem.PC;
+    mem_wb.nextPC = ex_mem.nextPC;
+    mem_wb.mem_write = ex_mem.mem_write;
+    mem_wb.reg_write = ex_mem.reg_write;
+    mem_wb.alu_result = ex_mem.alu_result;
+    mem_wb.rd = ex_mem.rd;
+    mem_wb.alu_zero = ex_mem.alu_zero;
+    mem_wb.branch_target = ex_mem.branch_target;
+   
+
 }
 int Writeback(){
     
-    if(ex_mem.reg_write == 1){
+    if(mem_wb.reg_write == 1){
         
-        if(ex_mem.mem_read == 1){
-            rf[id_ex.rd] = recieved;
+        if(mem_wb.mem_read == 1){
+            rf[mem_wb.rd] = mem_wb.recieved;
           
         }else{
-            if(jal_sig == 1){
+            if(mem_wb.jal_sig == 1){
              
-                if(jalr_sig == 1){
-                    PC = rf[id_ex.rs1_val]+ImmG;
+                if(mem_wb.jalr_sig == 1){
+                    mem_wb.PC = rf[mem_wb.rs1_val]+mem_wb.imm;
                 }else{
                     
-                    PC = PC + ImmG - 4 ;
+                    mem_wb.PC = mem_wb.PC + mem_wb.imm - 4 ;
                     
                 }
-                rf[id_ex.rd] = nextPC;
+                rf[mem_wb.rd] = mem_wb.nextPC;
             }else{
                 
-                rf[id_ex.rd] = ctrl_sig;
+                rf[mem_wb.rd] =  mem_wb.alu_result;
             }
             
         }
@@ -634,8 +711,8 @@ int main() {
     cout<< "Enter the program file name to run"<<endl;
     cout<<endl;
     loadFile("sample_part1.txt");
-    int i = 0;
-    while(if_id.fetch_bool || id_ex.decode_bool || ex_mem.exe_bool || mem_wb.mem_bool || mem_wb.mem_bool || PC/4 < instructions.size()) {
+    
+    while(if_id.fetch_bool || id_ex.decode_bool || ex_mem.exe_bool || mem_wb.mem_bool || mem_wb.mem_bool || (if_id.PC/4 < instructions.size())) {
         // fetch();
         // decode(currInstructions);
         // execute();
@@ -644,92 +721,66 @@ int main() {
        
         total_clock_cycles++;
         cout<<"total_clock_cycles "<< total_clock_cycles<<" :" <<endl;
-        if(if_id.fetch_bool == true){
-            if_id.fetch_bool = false;
-            
-        }else{
-            fetch();
-            cout<< "IF: " << if_id.instruction  <<endl;
-            cout<< "pc is modified to 0x"<< intToHex(PC)<<endl;
-            if_id.fetch_bool = true;
-            
-        }
-        if(id_ex.decode_bool == true){
-            id_ex.decode_bool = false;
-            
-        }else{
-            decode(if_id.instruction);
-            cout<< "ID: " << if_id.instruction  <<endl;
-            cout<< "pc is modified to 0x"<< intToHex(PC)<<endl;
-            id_ex.decode_bool = true;
-        }
-        if(ex_mem.exe_bool == true){
-            ex_mem.exe_bool = false;
-            
-        }else{
-            execute();
-            cout<< "EXE: " << if_id.instruction  <<endl;
-            cout<< "pc is modified to 0x"<< intToHex(PC)<<endl;
-            ex_mem.exe_bool = true;
-        }
+       
         
         if(mem_wb.mem_bool == true){
-            mem_wb.mem_bool  = false;
+          
             
-        }else{
             Writeback();
-            mem_wb.mem_bool = true;
-            cout<< "WB: " << if_id.instruction  <<endl;
-            if( ex_mem.mem_write == 1 ){
+            mem_wb.mem_bool = false;
+            cout<< "WB: " << mem_wb.instruction  <<endl;
+            if( mem_wb.mem_write == 1 ){
             
-                cout<<"memory 0x"<<intToHex(ctrl_sig) << " is modified to 0x"<< intToHex(D_mem[(ctrl_sig)/4])<<endl;
+                cout<<"memory 0x"<<intToHex( mem_wb.alu_result) << " is modified to 0x"<< intToHex(D_mem[( mem_wb.alu_result)/4])<<endl;
             }
-            if(ex_mem.reg_write==1){
-                cout<<"x"<<id_ex.rd << " is modified to 0x"<< intToHex(rf[id_ex.rd])<<endl;
+            if(mem_wb.reg_write==1){
+                cout<<"x"<<mem_wb.rd << " is modified to 0x"<< intToHex(rf[mem_wb.rd])<<endl;
             }
           
-            cout<< "pc is modified to 0x"<< intToHex(PC)<<endl;
+            cout<< "pc is modified to 0x"<< intToHex(mem_wb.PC)<<endl;
             cout<<endl;
             
         }
         
         if(ex_mem.exe_bool == true){
-            ex_mem.exe_bool  = false;
-            
-        }else{
+           
             Mem();
-            cout<< "MEM: " << if_id.instruction  <<endl;
-            cout<< "pc is modified to 0x"<< intToHex(PC)<<endl;
-            ex_mem.exe_bool = true;
+            cout<< "MEM: " << mem_wb.instruction  <<endl;
+            cout<< "pc is modified to 0x"<< intToHex(mem_wb.PC)<<endl;
+            cout<<endl;
+            mem_wb.mem_bool = true;
+            ex_mem.exe_bool = false;
         }
         if(id_ex.decode_bool == true){
+            
+            execute();
+            cout<< "EXE: " << id_ex.instruction  <<endl;
+            cout<< "pc is modified to 0x"<< intToHex(id_ex.PC)<<endl;
+            cout<<endl;
+            ex_mem.exe_bool= true;
             id_ex.decode_bool = false;
             
-        }else{
-            execute();
-            cout<< "EXE: " << if_id.instruction  <<endl;
-            cout<< "pc is modified to 0x"<< intToHex(PC)<<endl;
-            id_ex.decode_bool= true;
         }
         if(if_id.fetch_bool == true){
-            if_id.fetch_bool = false;
             
-        }else{
             decode(if_id.instruction);
             cout<< "ID: " << if_id.instruction  <<endl;
-            cout<< "pc is modified to 0x"<< intToHex(PC)<<endl;
-            if_id.fetch_bool = true;
+            cout<< "pc is modified to 0x"<< intToHex(if_id.PC)<<endl;
+            cout<<endl;
+            id_ex.decode_bool = true;
+            if_id.fetch_bool =false;
         }
-        if(PC/4 < instructions.size()){
+        if(if_id.PC/4 < instructions.size()){
            
             fetch();
             cout<< "IF: " << if_id.instruction  <<endl;
-            cout<< "pc is modified to 0x"<< intToHex(PC)<<endl;
-          
+            cout<< "pc is modified to 0x"<< intToHex(if_id.PC)<<endl;
+            cout<<endl;
+            if_id.fetch_bool = true;
             
         }
 
-        i++;
+        
         
     }
     
