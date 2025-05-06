@@ -439,6 +439,7 @@ void decode(string instruction) {
     id_ex.opcode =  opcodeG;
     id_ex.PC= if_id.PC;
     id_ex.nextPC= if_id.nextPC;
+    
 }
 
 // Load all instructions from the file (do this once)
@@ -671,7 +672,8 @@ int Mem(){
     mem_wb.jal_sig = ex_mem.jal_sig;
     mem_wb.jalr_sig = ex_mem.jalr_sig;
     mem_wb.imm =ex_mem.imm;
-
+    mem_wb.rs1_val =ex_mem.rs1_val;
+    
 }
 int Writeback(){
     
