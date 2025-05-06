@@ -669,6 +669,8 @@ int Mem(){
     mem_wb.branch_target = ex_mem.branch_target;
     mem_wb.mem_read = ex_mem.mem_read;
     mem_wb.jal_sig = ex_mem.jal_sig;
+    mem_wb.jalr_sig = ex_mem.jalr_sig;
+    mem_wb.imm =ex_mem.imm;
 
 }
 int Writeback(){
